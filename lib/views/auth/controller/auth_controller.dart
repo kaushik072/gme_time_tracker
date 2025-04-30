@@ -3,6 +3,9 @@ import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gme_time_tracker/utils/toast_helper.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../routes/app_routes.dart';
 
 class AuthController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -29,7 +32,7 @@ class AuthController extends GetxController {
     obscureConfirmPassword.value = !obscureConfirmPassword.value;
   }
 
-  Future<void> login() async {
+  Future<void> login(BuildContext context) async {
     if (!_validateLoginFields()) return;
 
     try {
@@ -41,7 +44,7 @@ class AuthController extends GetxController {
           );
 
       if (userCredential.user != null) {
-        navigationToDashboard();
+        navigationToDashboard(context);
       }
     } on FirebaseAuthException catch (e) {
       debugPrint('Login error: ${e.message}');
@@ -54,7 +57,7 @@ class AuthController extends GetxController {
     }
   }
 
-  Future<void> signUp() async {
+  Future<void> signUp(BuildContext context) async {
     if (!_validateSignUpFields()) return;
 
     try {
@@ -76,7 +79,7 @@ class AuthController extends GetxController {
           'createdAt': FieldValue.serverTimestamp(),
         });
 
-        navigationToDashboard();
+        navigationToDashboard(context);
       }
     } on FirebaseAuthException catch (e) {
       debugPrint('Signup error: ${e.message}');
@@ -91,10 +94,11 @@ class AuthController extends GetxController {
     }
   }
 
-  void navigationToDashboard() {
+  void navigationToDashboard(BuildContext context) {
     debugPrint('Success: User authenticated successfully');
-    // TODO: Implement navigation to dashboard
+    context.go(AppRoutes.dashboard);
   }
+
 
   bool _validateLoginFields() {
     if (emailController.text.isEmpty || !emailController.text.isEmail) {

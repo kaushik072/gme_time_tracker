@@ -9,6 +9,9 @@ class CommonTextField extends StatelessWidget {
   final Widget? suffixIcon;
   final TextInputType? keyboardType;
   final String? Function(String?)? validator;
+  final int maxLines;
+  final void Function()? onTap;
+  final bool readOnly;
 
   const CommonTextField({
     super.key,
@@ -19,6 +22,9 @@ class CommonTextField extends StatelessWidget {
     this.suffixIcon,
     this.keyboardType,
     this.validator,
+    this.maxLines = 1,
+    this.onTap,
+    this.readOnly = false,
   });
 
   @override
@@ -38,6 +44,9 @@ class CommonTextField extends StatelessWidget {
           const SizedBox(height: 8),
         ],
         TextFormField(
+          onTap: onTap,
+          readOnly: readOnly,
+          maxLines: maxLines,
           controller: controller,
           obscureText: obscureText,
           keyboardType: keyboardType,

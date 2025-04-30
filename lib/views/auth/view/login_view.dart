@@ -62,7 +62,10 @@ class _WebLoginView extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 50),
-                _buildLoginForm(onSignUp: () => context.go(AppRoutes.signUp)),
+                _buildLoginForm(
+                  onSignUp: () => context.go(AppRoutes.signUp),
+                  context: context,
+                ),
               ],
             ),
           ),
@@ -71,7 +74,7 @@ class _WebLoginView extends StatelessWidget {
     );
   }
 
-  Widget _buildLoginForm({required VoidCallback onSignUp}) {
+  Widget _buildLoginForm({required VoidCallback onSignUp, required BuildContext context}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -134,7 +137,7 @@ class _WebLoginView extends StatelessWidget {
         Obx(
           () => CommonButton(
             text: 'Log In',
-            onPressed: controller.login,
+            onPressed: () => controller.login(context),
             isPrimary: true,
             width: double.infinity,
             isLoading: controller.isLoading.value,
@@ -195,7 +198,10 @@ class _MobileLoginView extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 32),
-              _buildLoginForm(onSignUp: () => context.go(AppRoutes.signUp)),
+              _buildLoginForm(
+                onSignUp: () => context.go(AppRoutes.signUp),
+                context: context,
+              ),
             ],
           ),
         ),
@@ -203,7 +209,7 @@ class _MobileLoginView extends StatelessWidget {
     );
   }
 
-  Widget _buildLoginForm({required VoidCallback onSignUp}) {
+  Widget _buildLoginForm({required VoidCallback onSignUp, required BuildContext context}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -266,7 +272,7 @@ class _MobileLoginView extends StatelessWidget {
         Obx(
           () => CommonButton(
             text: 'Log In',
-            onPressed: controller.login,
+            onPressed: () => controller.login(context),
             isPrimary: true,
             width: double.infinity,
             isLoading: controller.isLoading.value,

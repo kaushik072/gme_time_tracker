@@ -61,7 +61,10 @@ class _WebSignUpView extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 50),
-                _buildSignUpForm(onLogin: () => context.go(AppRoutes.login)),
+                _buildSignUpForm(
+                  onLogin: () => context.go(AppRoutes.login),
+                  context: context,
+                ),
               ],
             ),
           ),
@@ -70,7 +73,7 @@ class _WebSignUpView extends StatelessWidget {
     );
   }
 
-  Widget _buildSignUpForm({required VoidCallback onLogin}) {
+  Widget _buildSignUpForm({required VoidCallback onLogin, required BuildContext context}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -189,7 +192,7 @@ class _WebSignUpView extends StatelessWidget {
         Obx(
           () => CommonButton(
             text: 'Create Account',
-            onPressed: controller.signUp,
+            onPressed: () => controller.signUp(context),
             isPrimary: true,
             width: double.infinity,
             isLoading: controller.isLoading.value,
@@ -350,7 +353,7 @@ class _MobileSignUpView extends StatelessWidget {
         Obx(
           () => CommonButton(
             text: 'Create Account',
-            onPressed: controller.signUp,
+            onPressed: () => controller.signUp(context),
             isPrimary: true,
             width: double.infinity,
             isLoading: controller.isLoading.value,

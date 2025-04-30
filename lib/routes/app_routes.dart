@@ -16,11 +16,11 @@ class AppRoutes {
     onboarding,
     login,
     signUp,
-    dashboard,
+    // dashboard,
   ];
 
   static final router = GoRouter(
-    initialLocation: dashboard,
+    initialLocation: onboarding,
     redirect: (context, state) {
       final isAuthenticated = AuthService.isAuthenticated;
       final isPublicRoute = publicRoutes.contains(state.matchedLocation);
