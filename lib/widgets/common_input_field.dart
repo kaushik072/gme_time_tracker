@@ -89,28 +89,22 @@ class CommonDropdownButton<T> extends StatelessWidget {
           ),
           const SizedBox(height: 8),
         ],
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: AppColors.border),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: DropdownButtonFormField<T>(
-                 decoration: InputDecoration(
+        DropdownButtonFormField<T>(
+          decoration: InputDecoration(
             hintText: hintText,
             border: const OutlineInputBorder(
               borderRadius: BorderRadius.all(Radius.circular(12)),
             ),
           ),
-            value: value,
-            hint: Text(hintText ?? 'Select'),
-            isExpanded: true,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            items: items,
-            onChanged: onChanged,
-            validator: validator,
-          ),
+          value: value,
+          hint: Text(hintText ?? 'Select'),
+          isExpanded: true,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          items: items,
+          onChanged: onChanged,
+          validator: validator,
         ),
       ],
     );
   }
-} 
+}

@@ -32,7 +32,7 @@ class _WebSignUpView extends StatelessWidget {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(12),
           child: Container(
-                padding: const EdgeInsets.all(50),
+            padding: const EdgeInsets.all(50),
 
             decoration: BoxDecoration(
               // color: AppColors.surface,
@@ -61,9 +61,7 @@ class _WebSignUpView extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 50),
-                _buildSignUpForm(
-                  onLogin: () => context.go(AppRoutes.login),
-                ),
+                _buildSignUpForm(onLogin: () => context.go(AppRoutes.login)),
               ],
             ),
           ),
@@ -72,9 +70,7 @@ class _WebSignUpView extends StatelessWidget {
     );
   }
 
-  Widget _buildSignUpForm({
-    required VoidCallback onLogin,}
-  ) {
+  Widget _buildSignUpForm({required VoidCallback onLogin}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -84,6 +80,7 @@ class _WebSignUpView extends StatelessWidget {
               child: CommonTextField(
                 controller: controller.firstNameController,
                 labelText: 'First Name',
+                hintText: 'Enter your first name',
               ),
             ),
             const SizedBox(width: 16),
@@ -91,6 +88,7 @@ class _WebSignUpView extends StatelessWidget {
               child: CommonTextField(
                 controller: controller.lastNameController,
                 labelText: 'Last Name',
+                hintText: 'Enter your last name',
               ),
             ),
           ],
@@ -139,46 +137,55 @@ class _WebSignUpView extends StatelessWidget {
         const SizedBox(height: 16),
         Row(
           children: [
-           
-              Expanded(
-                child: Obx(
-                          () => CommonDropdownButton<String>(
-                            value: controller.selectedDegree.value.isEmpty
-                  ? null
-                  : controller.selectedDegree.value,
-                            labelText: 'Degree',
-                            hintText: 'Select Degree',
-                            items: const [
-                DropdownMenuItem(value: 'bachelor', child: Text('Bachelor')),
-                DropdownMenuItem(value: 'master', child: Text('Master')),
-                DropdownMenuItem(value: 'phd', child: Text('PhD')),
-                            ],
-                            onChanged: (value) => controller.selectedDegree.value = value ?? '',
-                          ),
-                        ),
+            Expanded(
+              child: Obx(
+                () => CommonDropdownButton<String>(
+                  value:
+                      controller.selectedDegree.value.isEmpty
+                          ? null
+                          : controller.selectedDegree.value,
+                  labelText: 'Degree',
+                  hintText: 'Select Degree',
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'bachelor',
+                      child: Text('Bachelor'),
+                    ),
+                    DropdownMenuItem(value: 'master', child: Text('Master')),
+                    DropdownMenuItem(value: 'phd', child: Text('PhD')),
+                  ],
+                  onChanged:
+                      (value) => controller.selectedDegree.value = value ?? '',
+                ),
               ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Obx(
-            () => CommonDropdownButton<String>(
-              value: controller.selectedPosition.value.isEmpty
-                  ? null
-                  : controller.selectedPosition.value,
-              labelText: 'Position',
-              hintText: 'Select Position',
-              items: const [
-                DropdownMenuItem(value: 'student', child: Text('Student')),
-                DropdownMenuItem(value: 'professor', child: Text('Professor')),
-                DropdownMenuItem(value: 'staff', child: Text('Staff')),
-              ],
-              onChanged: (value) => controller.selectedPosition.value = value ?? '',
             ),
-          ),
-        ),
-       
+            const SizedBox(width: 16),
+            Expanded(
+              child: Obx(
+                () => CommonDropdownButton<String>(
+                  value:
+                      controller.selectedPosition.value.isEmpty
+                          ? null
+                          : controller.selectedPosition.value,
+                  labelText: 'Position',
+                  hintText: 'Select Position',
+                  items: const [
+                    DropdownMenuItem(value: 'student', child: Text('Student')),
+                    DropdownMenuItem(
+                      value: 'professor',
+                      child: Text('Professor'),
+                    ),
+                    DropdownMenuItem(value: 'staff', child: Text('Staff')),
+                  ],
+                  onChanged:
+                      (value) =>
+                          controller.selectedPosition.value = value ?? '',
+                ),
+              ),
+            ),
           ],
         ),
-      const SizedBox(height: 40),
+        const SizedBox(height: 40),
         Obx(
           () => CommonButton(
             text: 'Create Account',
@@ -196,10 +203,7 @@ class _WebSignUpView extends StatelessWidget {
               'Already have an account?',
               style: TextStyle(color: AppColors.textSecondary),
             ),
-            TextButton(
-              onPressed: onLogin,
-              child: const Text('Log in'),
-            ),
+            TextButton(onPressed: onLogin, child: const Text('Log in')),
           ],
         ),
       ],
@@ -243,7 +247,7 @@ class _MobileSignUpView extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 32),
-              _buildSignUpForm(),
+              _buildSignUpForm(context),
             ],
           ),
         ),
@@ -251,18 +255,20 @@ class _MobileSignUpView extends StatelessWidget {
     );
   }
 
-  Widget _buildSignUpForm() {
+  Widget _buildSignUpForm(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CommonTextField(
           controller: controller.firstNameController,
           labelText: 'First Name',
+          hintText: 'Enter your first name',
         ),
         const SizedBox(height: 16),
         CommonTextField(
           controller: controller.lastNameController,
           labelText: 'Last Name',
+          hintText: 'Enter your last name',
         ),
         const SizedBox(height: 16),
         CommonTextField(
@@ -308,9 +314,10 @@ class _MobileSignUpView extends StatelessWidget {
         const SizedBox(height: 16),
         Obx(
           () => CommonDropdownButton<String>(
-            value: controller.selectedDegree.value.isEmpty
-                ? null
-                : controller.selectedDegree.value,
+            value:
+                controller.selectedDegree.value.isEmpty
+                    ? null
+                    : controller.selectedDegree.value,
             labelText: 'Degree',
             hintText: 'Select Degree',
             items: const [
@@ -324,9 +331,10 @@ class _MobileSignUpView extends StatelessWidget {
         const SizedBox(height: 16),
         Obx(
           () => CommonDropdownButton<String>(
-            value: controller.selectedPosition.value.isEmpty
-                ? null
-                : controller.selectedPosition.value,
+            value:
+                controller.selectedPosition.value.isEmpty
+                    ? null
+                    : controller.selectedPosition.value,
             labelText: 'Position',
             hintText: 'Select Position',
             items: const [
@@ -334,7 +342,8 @@ class _MobileSignUpView extends StatelessWidget {
               DropdownMenuItem(value: 'professor', child: Text('Professor')),
               DropdownMenuItem(value: 'staff', child: Text('Staff')),
             ],
-            onChanged: (value) => controller.selectedPosition.value = value ?? '',
+            onChanged:
+                (value) => controller.selectedPosition.value = value ?? '',
           ),
         ),
         const SizedBox(height: 24),
@@ -356,7 +365,7 @@ class _MobileSignUpView extends StatelessWidget {
               style: TextStyle(color: AppColors.textSecondary),
             ),
             TextButton(
-              onPressed: () => Get.context?.go(AppRoutes.signUp),
+              onPressed: () => context.go(AppRoutes.login),
               child: const Text('Log in'),
             ),
           ],
