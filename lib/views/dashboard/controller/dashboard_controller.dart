@@ -44,6 +44,7 @@ class DashboardController extends GetxController {
       debugPrint('Tracking: $tracking');
 
       if (tracking != null) {
+        debugPrint('Tracking ID: ${tracking['id']}');
         currentTrackingId.value = tracking['id'];
         activityType.value = tracking['activityType'];
         notesController.text = tracking['notes'] ?? '';
@@ -82,9 +83,7 @@ class DashboardController extends GetxController {
         notes: notesController.text,
       );
 
-      isTracking.value = true;
-      elapsedSeconds.value = 0;
-      _startTimer();
+      _checkForInProgressTracking();
       ToastHelper.showSuccessToast('Timer started successfully');
     } catch (e) {
       ToastHelper.showErrorToast('Failed to start timer');
@@ -92,6 +91,7 @@ class DashboardController extends GetxController {
   }
 
   Future<void> stopTracking() async {
+    debugPrint('Stopping tracking ${currentTrackingId.value}');
     if (currentTrackingId.isEmpty) return;
 
     try {

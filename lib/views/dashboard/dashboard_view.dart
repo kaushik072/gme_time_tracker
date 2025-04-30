@@ -133,66 +133,106 @@ class _TrackingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          border: Border.all(color: AppColors.border),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return SizedBox(
+      width: double.infinity,
+      child: SingleChildScrollView(
+        child: Wrap(
+          alignment: WrapAlignment.spaceEvenly,
+          runAlignment: WrapAlignment.spaceEvenly,
+          spacing: 20,
+          runSpacing: 50,
           children: [
-            Obx(() {
-              return Text(
-                controller.formatTime(controller.elapsedSeconds.value),
-                style: const TextStyle(
-                  fontSize: 48,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+            Flexible(
+              child: Container(
+                height: 450,
+                constraints: const BoxConstraints(minWidth: 300, maxWidth: 700),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.border),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                textAlign: TextAlign.center,
-              );
-            }),
-            const SizedBox(height: 24),
-            CommonDropdownButton<String>(
-              labelText: 'Activity Type',
-              hintText: 'Select Activity Type',
-              value:
-                  controller.activityType.value.isEmpty
-                      ? null
-                      : controller.activityType.value,
-              items:
-                  controller.activityTypes
-                      .map(
-                        (type) =>
-                            DropdownMenuItem(value: type, child: Text(type)),
-                      )
-                      .toList(),
-              onChanged: (value) => controller.activityType.value = value ?? '',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Obx(() {
+                        return Text(
+                          controller.formatTime(
+                            controller.elapsedSeconds.value,
+                          ),
+                          style: const TextStyle(
+                            fontSize: 48,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                          textAlign: TextAlign.center,
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: 24),
+                    Obx(() {
+                      return CommonDropdownButton<String>(
+                        labelText: 'Activity Type',
+                        hintText: 'Select Activity Type',
+                        value:
+                            controller.activityType.value.isEmpty
+                                ? null
+                                : controller.activityType.value,
+                        items:
+                            controller.activityTypes
+                                .map(
+                                  (type) => DropdownMenuItem(
+                                    value: type,
+                                    child: Text(type),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged:
+                            (value) =>
+                                controller.activityType.value = value ?? '',
+                      );
+                    }),
+                    const SizedBox(height: 16),
+                    CommonTextField(
+                      controller: controller.notesController,
+                      labelText: 'Notes (Optional)',
+                      hintText: 'Enter optional notes about this activity',
+                      keyboardType: TextInputType.multiline,
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 24),
+                    Spacer(),
+                    Obx(() {
+                      return CommonButton(
+                        text:
+                            controller.isTracking.value
+                                ? 'Stop Timer'
+                                : 'Start Timer',
+                        onPressed:
+                            controller.isTracking.value
+                                ? controller.stopTracking
+                                : controller.startTracking,
+                        isPrimary: !controller.isTracking.value,
+                        width: double.infinity,
+                      );
+                    }),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 16),
-            CommonTextField(
-              controller: controller.notesController,
-              labelText: 'Notes (Optional)',
-              hintText: 'Enter optional notes about this activity',
-              keyboardType: TextInputType.multiline,
-              maxLines: 3,
+
+            Flexible(
+              child: Container(
+                height: 450,
+                constraints: const BoxConstraints(minWidth: 300, maxWidth: 700),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.border),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: _ManualEntryForm(),
+              ),
             ),
-            const SizedBox(height: 24),
-            Obx(() {
-              return CommonButton(
-                text:
-                    controller.isTracking.value ? 'Stop Timer' : 'Start Timer',
-                onPressed:
-                    controller.isTracking.value
-                        ? controller.stopTracking
-                        : controller.startTracking,
-                isPrimary: !controller.isTracking.value,
-                width: double.infinity,
-              );
-            }),
           ],
         ),
       ),
@@ -220,30 +260,42 @@ class _ManualEntryForm extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CommonDropdownButton<String>(
-            labelText: 'Activity Type',
-            hintText: 'Select Activity Type',
-            value:
-                controller.activityType.value.isEmpty
-                    ? null
-                    : controller.activityType.value,
-            items:
-                controller.activityTypes
-                    .map(
-                      (type) =>
-                          DropdownMenuItem(value: type, child: Text(type)),
-                    )
-                    .toList(),
-            onChanged: (value) => controller.activityType.value = value ?? '',
+          Row(
+            children: [
+              Expanded(
+                child: CommonDropdownButton<String>(
+                  labelText: 'Activity Type',
+                  hintText: 'Select Activity Type',
+                  value:
+                      controller.activityType.value.isEmpty
+                          ? null
+                          : controller.activityType.value,
+                  items:
+                      controller.activityTypes
+                          .map(
+                            (type) => DropdownMenuItem(
+                              value: type,
+                              child: Text(type),
+                            ),
+                          )
+                          .toList(),
+                  onChanged:
+                      (value) => controller.activityType.value = value ?? '',
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: CommonTextField(
+                  controller: controller.dateController,
+                  labelText: 'Date',
+                  hintText: 'Select Date',
+                  onTap: () => controller.selectDate(context),
+                  readOnly: true,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          CommonTextField(
-            controller: controller.dateController,
-            labelText: 'Date',
-            hintText: 'Select Date',
-            onTap: () => controller.selectDate(context),
-            readOnly: true,
-          ),
+
           const SizedBox(height: 16),
           Row(
             children: [
@@ -275,6 +327,7 @@ class _ManualEntryForm extends StatelessWidget {
             maxLines: 3,
           ),
           const SizedBox(height: 24),
+          // Spacer(),
           CommonButton(
             text: 'Add Log Entry',
             onPressed: () {

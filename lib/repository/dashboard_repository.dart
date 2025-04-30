@@ -1,14 +1,25 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import '../utils/auth_service.dart';
 
 class DashboardRepository {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instanceFor(
+    app: Firebase.app(),
+    databaseId: 'gmetimetracker',
+  );
+
+  //   final database = FirebaseDatabase.instanceFor(
+  // final database = FirebaseDatabase.instanceFor(
+  //   app: Firebase.app(),
+  //   databaseURL: 'https://gme-time-tracker-nam5.firebaseio.com',
+  // );
 
   Future<void> startTracking({
     required String activityType,
     String? notes,
   }) async {
+    debugPrint('Starting tracking ${AuthService.userId}');
     try {
       await _firestore.collection('tracking').add({
         'userId': AuthService.userId,
