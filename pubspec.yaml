@@ -40,6 +40,13 @@ dependencies:
   firebase_auth: ^5.5.3
   cloud_firestore: ^5.6.7
   toastification: ^3.0.2
+  intl: ^0.19.0
+  syncfusion_flutter_charts: ^29.1.40
+  excel: ^4.0.6
+  syncfusion_flutter_xlsio: ^29.1.40
+  path_provider: ^2.1.5
+  share_plus: ^7.2.1
+  universal_html: ^2.2.4
 
 dev_dependencies:
   flutter_test:

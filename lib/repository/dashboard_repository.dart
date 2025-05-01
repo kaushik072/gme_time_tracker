@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import '../utils/auth_service.dart';
+import '../models/activity_model.dart';
 
 class DashboardRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instanceFor(
@@ -27,6 +28,7 @@ class DashboardRepository {
         'notes': notes,
         'startTime': DateTime.now(),
         'status': 'in_progress',
+        'createdAt': DateTime.now(),
       });
     } catch (e) {
       debugPrint('Error starting tracking: $e');
@@ -54,6 +56,7 @@ class DashboardRepository {
       'notes': notes,
       'status': 'completed',
       'isManual': true,
+      'createdAt': DateTime.now(),
     });
   }
 
@@ -65,7 +68,7 @@ class DashboardRepository {
               .collection('tracking')
               .where('userId', isEqualTo: AuthService.userId)
               .where('status', isEqualTo: 'in_progress')
-              .orderBy('startTime', descending: true)
+              .orderBy('createdAt', descending: true)
               .limit(1)
               .get();
 
@@ -79,5 +82,24 @@ class DashboardRepository {
       debugPrint('Error getting in-progress tracking: $e');
       return null;
     }
+  }
+
+  Stream<List<ActivityModel>> getActivities() {
+    debugPrint('Getting activities: ${AuthService.userId}');
+    return _firestore
+        .collection('tracking')
+        .where('userId', isEqualTo: AuthService.userId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) =>
+              snapshot.docs
+                  .map((doc) => ActivityModel.fromFirestore(doc))
+                  .toList(),
+        );
+  }
+
+  Future<void> deleteActivity(String activityId) async {
+    await _firestore.collection('tracking').doc(activityId).delete();
   }
 }

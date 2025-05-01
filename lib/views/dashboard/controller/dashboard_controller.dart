@@ -3,18 +3,27 @@ import 'package:flutter/material.dart';
 import '../../../repository/dashboard_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../utils/toast_helper.dart';
+import '../../../models/activity_model.dart';
 
 class DashboardController extends GetxController {
   final DashboardRepository _repository = DashboardRepository();
+  final scrollController = ScrollController();
+  final sectionKeys = List.generate(3, (index) => GlobalKey());
+  bool isProgrammaticScroll = false;
 
   final selectedTab = 0.obs;
   final isTracking = false.obs;
   final elapsedSeconds = 0.obs;
   final currentTrackingId = ''.obs;
-  final activityType = ''.obs;
+  final trackingActivityType = ''.obs;
+  final manualEntryActivityType = ''.obs;
+  final allActivities = <ActivityModel>[].obs; // Store all activities locally
+  final selectedActivityFilter = 'All Activities'.obs;
+  final filteredActivities = <ActivityModel>[].obs;
 
   final activityTypeController = TextEditingController();
-  final notesController = TextEditingController();
+  final trackingNotesController = TextEditingController();
+  final manualEntryNotesController = TextEditingController();
   final dateController = TextEditingController();
   final hoursController = TextEditingController();
   final minutesController = TextEditingController();
@@ -32,9 +41,96 @@ class DashboardController extends GetxController {
 
   @override
   void onInit() {
-    _checkForInProgressTracking();
-    debugPrint('onInit');
     super.onInit();
+    _checkForInProgressTracking();
+    _setupActivityListener();
+    _setupScrollListener();
+
+    // Listen for filter changes and update filtered activities
+    ever(selectedActivityFilter, (_) => _filterActivities());
+  }
+
+  void _setupActivityListener() {
+    _repository
+        .getActivities() // Remove the filter parameter since we'll filter locally
+        .listen(
+          (activityList) {
+            debugPrint('Activity list: $activityList');
+            allActivities.value = activityList;
+            _filterActivities(); // Apply current filter to new data
+          },
+          onError: (error) {
+            debugPrint('Error fetching activities: $error');
+            ToastHelper.showErrorToast('Failed to load activities');
+          },
+        );
+  }
+
+  void _filterActivities() {
+    if (selectedActivityFilter.value == 'All Activities') {
+      filteredActivities.value = allActivities;
+    } else {
+      filteredActivities.value =
+          allActivities
+              .where(
+                (activity) =>
+                    activity.activityType == selectedActivityFilter.value,
+              )
+              .toList();
+    }
+  }
+
+  void _setupScrollListener() {
+    scrollController.addListener(() {
+      if (isProgrammaticScroll) return;
+
+      // Get the current scroll position
+      final position = scrollController.position.pixels;
+      final viewportHeight = scrollController.position.viewportDimension;
+
+      // Find which section is most visible
+      int mostVisibleIndex = selectedTab.value;
+      double maxVisibility = 0;
+
+      for (var i = 0; i < sectionKeys.length; i++) {
+        final context = sectionKeys[i].currentContext;
+        if (context != null) {
+          final box = context.findRenderObject() as RenderBox?;
+          if (box != null) {
+            final offset = box.localToGlobal(Offset.zero);
+            final sectionHeight = box.size.height;
+
+            // Calculate section's position relative to viewport
+            final sectionTop = offset.dy;
+            final sectionBottom = sectionTop + sectionHeight;
+
+            // Calculate how much of the section is visible
+            final visibleTop = sectionTop < 0 ? 0 : sectionTop;
+            final visibleBottom =
+                sectionBottom > viewportHeight ? viewportHeight : sectionBottom;
+            final visibleHeight = visibleBottom - visibleTop;
+
+            // Calculate visibility percentage
+            final visibility = visibleHeight / sectionHeight;
+
+            // Consider a section more visible if it's closer to the top of the viewport
+            final topProximity = 1.0 - (sectionTop.abs() / viewportHeight);
+            final adjustedVisibility =
+                visibility * (0.7 + (0.3 * topProximity));
+
+            if (adjustedVisibility > maxVisibility) {
+              maxVisibility = adjustedVisibility;
+              mostVisibleIndex = i;
+            }
+          }
+        }
+      }
+
+      // Update selected tab if we found a more visible section
+      if (maxVisibility > 0.3 && selectedTab.value != mostVisibleIndex) {
+        selectedTab.value = mostVisibleIndex;
+      }
+    });
   }
 
   Future<void> _checkForInProgressTracking() async {
@@ -46,8 +142,8 @@ class DashboardController extends GetxController {
       if (tracking != null) {
         debugPrint('Tracking ID: ${tracking['id']}');
         currentTrackingId.value = tracking['id'];
-        activityType.value = tracking['activityType'];
-        notesController.text = tracking['notes'] ?? '';
+        trackingActivityType.value = tracking['activityType'];
+        trackingNotesController.text = tracking['notes'] ?? '';
         isTracking.value = true;
 
         // Calculate elapsed time
@@ -72,15 +168,15 @@ class DashboardController extends GetxController {
   }
 
   Future<void> startTracking() async {
-    if (activityType.value.isEmpty) {
+    if (trackingActivityType.value.isEmpty) {
       ToastHelper.showErrorToast('Please select an activity type');
       return;
     }
 
     try {
       await _repository.startTracking(
-        activityType: activityType.value,
-        notes: notesController.text,
+        activityType: trackingActivityType.value,
+        notes: trackingNotesController.text,
       );
 
       _checkForInProgressTracking();
@@ -100,8 +196,8 @@ class DashboardController extends GetxController {
       isTracking.value = false;
       elapsedSeconds.value = 0;
       currentTrackingId.value = '';
-      activityType.value = '';
-      notesController.clear();
+      trackingActivityType.value = '';
+      trackingNotesController.clear();
       ToastHelper.showSuccessToast('Timer stopped successfully');
     } catch (e) {
       ToastHelper.showErrorToast('Failed to stop timer');
@@ -121,7 +217,7 @@ class DashboardController extends GetxController {
   }
 
   Future<void> addManualEntry() async {
-    if (activityType.value.isEmpty ||
+    if (manualEntryActivityType.value.isEmpty ||
         dateController.text.isEmpty ||
         (hoursController.text.isEmpty && minutesController.text.isEmpty)) {
       ToastHelper.showErrorToast('Please fill in all required fields');
@@ -139,17 +235,18 @@ class DashboardController extends GetxController {
 
     try {
       await _repository.addManualEntry(
-        activityType: activityType.value,
+        activityType: manualEntryActivityType.value,
         date: DateTime.parse(dateController.text),
         durationMinutes: totalMinutes,
-        notes: notesController.text,
+        notes: manualEntryNotesController.text,
       );
 
-      activityType.value = '';
+      manualEntryActivityType.value = '';
       dateController.clear();
       hoursController.clear();
       minutesController.clear();
-      notesController.clear();
+      manualEntryNotesController.clear();
+      manualEntryActivityType.value = '';
       ToastHelper.showSuccessToast('Activity logged successfully');
     } catch (e) {
       ToastHelper.showErrorToast('Failed to log activity');
@@ -163,10 +260,71 @@ class DashboardController extends GetxController {
     return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
   }
 
+  Future<void> deleteActivity(String activityId) async {
+    try {
+      await _repository.deleteActivity(activityId);
+      ToastHelper.showSuccessToast('Activity deleted successfully');
+    } catch (e) {
+      debugPrint('Error deleting activity: $e');
+      ToastHelper.showErrorToast('Failed to delete activity');
+    }
+  }
+
+  String formatDuration(int minutes) {
+    final hours = minutes ~/ 60;
+    final remainingMinutes = minutes % 60;
+    return '${hours}h ${remainingMinutes}m';
+  }
+
+  void scrollToSection(int index) {
+    if (index < 0 || index >= sectionKeys.length) return;
+
+    // Update the selected tab
+    selectedTab.value = index;
+
+    final context = sectionKeys[index].currentContext;
+    if (context != null) {
+      // Set flag to prevent scroll listener from updating tab
+      isProgrammaticScroll = true;
+
+      // Cancel any ongoing scroll animation
+      scrollController.animateTo(
+        scrollController.offset,
+        duration: Duration.zero,
+        curve: Curves.linear,
+      );
+
+      // Perform the new scroll
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+        alignment: 0.0,
+      ).then((_) {
+        // Reset flag after animation completes
+        Future.delayed(const Duration(milliseconds: 100), () {
+          isProgrammaticScroll = false;
+        });
+
+        // Ensure we're at the correct position after animation
+        if (selectedTab.value == index) {
+          Scrollable.ensureVisible(
+            context,
+            duration: Duration.zero,
+            curve: Curves.linear,
+            alignment: 0.0,
+          );
+        }
+      });
+    }
+  }
+
   @override
   void onClose() {
+    scrollController.dispose();
     activityTypeController.dispose();
-    notesController.dispose();
+    trackingNotesController.dispose();
+    manualEntryNotesController.dispose();
     dateController.dispose();
     hoursController.dispose();
     minutesController.dispose();

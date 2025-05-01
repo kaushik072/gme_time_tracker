@@ -71,7 +71,7 @@ class CommonDropdownButton<T> extends StatelessWidget {
   final List<DropdownMenuItem<T>> items;
   final void Function(T?) onChanged;
   final String? Function(T?)? validator;
-
+  final bool isExpanded;
   const CommonDropdownButton({
     super.key,
     this.value,
@@ -80,6 +80,7 @@ class CommonDropdownButton<T> extends StatelessWidget {
     required this.items,
     required this.onChanged,
     this.validator,
+    this.isExpanded = true,
   });
 
   @override
@@ -107,7 +108,7 @@ class CommonDropdownButton<T> extends StatelessWidget {
           ),
           value: value,
           hint: Text(hintText ?? 'Select'),
-          isExpanded: true,
+          isExpanded: isExpanded,
           padding: const EdgeInsets.symmetric(horizontal: 12),
           items: items,
           onChanged: onChanged,
