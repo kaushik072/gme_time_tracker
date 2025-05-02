@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_connect/http/src/utils/utils.dart';
 import '../utils/app_colors.dart';
 
 class CommonTextField extends StatelessWidget {
@@ -87,6 +88,7 @@ class CommonDropdownButton<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         if (labelText != null) ...[
           Text(
@@ -100,17 +102,23 @@ class CommonDropdownButton<T> extends StatelessWidget {
           const SizedBox(height: 8),
         ],
         DropdownButtonFormField<T>(
+          isDense: true,
+
           decoration: InputDecoration(
             hintText: hintText,
             border: const OutlineInputBorder(
               borderRadius: BorderRadius.all(Radius.circular(12)),
             ),
           ),
+
           value: value,
           hint: Text(hintText ?? 'Select'),
-          isExpanded: isExpanded,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          isExpanded: false,
+          alignment: Alignment.centerLeft,
+
+          // padding: const EdgeInsets.symmetric(horizontal: 12),
           items: items,
+          padding: EdgeInsets.zero,
           onChanged: onChanged,
           validator: validator,
         ),

@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gme_time_tracker/utils/toast_helper.dart';
 import 'package:go_router/go_router.dart';
+import 'package:gme_time_tracker/repositories/auth_repository.dart';
 
 import '../../../routes/app_routes.dart';
 
 class AuthController extends GetxController {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final AuthRepository _authRepository = AuthRepository();
 
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -37,18 +35,14 @@ class AuthController extends GetxController {
 
     try {
       isLoading.value = true;
-      final UserCredential userCredential = await _auth
-          .signInWithEmailAndPassword(
-            email: emailController.text.trim(),
-            password: passwordController.text,
-          );
+      final userCredential = await _authRepository.signInWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text,
+      );
 
       if (userCredential.user != null) {
         navigationToDashboard(context);
       }
-    } on FirebaseAuthException catch (e) {
-      debugPrint('Login error: ${e.message}');
-      ToastHelper.showErrorToast(e.message ?? 'An error occurred during login');
     } catch (e) {
       debugPrint('Login error: $e');
       ToastHelper.showErrorToast('An unexpected error occurred');
@@ -62,30 +56,24 @@ class AuthController extends GetxController {
 
     try {
       isLoading.value = true;
-      final UserCredential userCredential = await _auth
+      final userCredential = await _authRepository
           .createUserWithEmailAndPassword(
             email: emailController.text.trim(),
             password: passwordController.text,
           );
 
       if (userCredential.user != null) {
-        // Create user document in Firestore
-        await _firestore.collection('users').doc(userCredential.user!.uid).set({
-          'firstName': firstNameController.text.trim(),
-          'lastName': lastNameController.text.trim(),
-          'email': emailController.text.trim(),
-          'degree': selectedDegree.value,
-          'position': selectedPosition.value,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
+        await _authRepository.createUserDocument(
+          uid: userCredential.user!.uid,
+          firstName: firstNameController.text.trim(),
+          lastName: lastNameController.text.trim(),
+          email: emailController.text.trim(),
+          degree: selectedDegree.value,
+          position: selectedPosition.value,
+        );
 
         navigationToDashboard(context);
       }
-    } on FirebaseAuthException catch (e) {
-      debugPrint('Signup error: ${e.message}');
-      ToastHelper.showErrorToast(
-        e.message ?? 'An error occurred during signup',
-      );
     } catch (e) {
       debugPrint('Signup error: $e');
       ToastHelper.showErrorToast('An unexpected error occurred');
@@ -98,7 +86,6 @@ class AuthController extends GetxController {
     debugPrint('Success: User authenticated successfully');
     context.go(AppRoutes.dashboard);
   }
-
 
   bool _validateLoginFields() {
     if (emailController.text.isEmpty || !emailController.text.isEmail) {

@@ -102,4 +102,17 @@ class DashboardRepository {
   Future<void> deleteActivity(String activityId) async {
     await _firestore.collection('tracking').doc(activityId).delete();
   }
+
+  Future<Map<String, dynamic>?> fetchUserData(String userId) async {
+    try {
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      if (userDoc.exists) {
+        return userDoc.data() as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching user data: $e');
+      return null;
+    }
+  }
 }

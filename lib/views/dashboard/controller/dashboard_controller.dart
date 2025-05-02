@@ -1,9 +1,10 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import '../../../repository/dashboard_repository.dart';
+import '../../../repositories/dashboard_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../utils/toast_helper.dart';
 import '../../../models/activity_model.dart';
+import '../../../utils/auth_service.dart';
 
 class DashboardController extends GetxController {
   final DashboardRepository _repository = DashboardRepository();
@@ -20,6 +21,9 @@ class DashboardController extends GetxController {
   final allActivities = <ActivityModel>[].obs; // Store all activities locally
   final selectedActivityFilter = 'All Activities'.obs;
   final filteredActivities = <ActivityModel>[].obs;
+
+  // User data
+  RxString userName = ''.obs;
 
   final activityTypeController = TextEditingController();
   final trackingNotesController = TextEditingController();
@@ -45,9 +49,27 @@ class DashboardController extends GetxController {
     _checkForInProgressTracking();
     _setupActivityListener();
     _setupScrollListener();
+    _fetchUserData();
 
     // Listen for filter changes and update filtered activities
     ever(selectedActivityFilter, (_) => _filterActivities());
+  }
+
+  Future<void> _fetchUserData() async {
+    try {
+      final userId = AuthService.userId;
+      if (userId == null) {
+        debugPrint('Error: User ID is null');
+        return;
+      }
+      final data = await _repository.fetchUserData(userId);
+      if (data != null) {
+        userName.value = '${data['firstName']} ${data['lastName']}';
+        print("userName: ${userName.value}");
+      }
+    } catch (e) {
+      debugPrint('Error fetching user data: $e');
+    }
   }
 
   void _setupActivityListener() {
@@ -241,16 +263,19 @@ class DashboardController extends GetxController {
         notes: manualEntryNotesController.text,
       );
 
-      manualEntryActivityType.value = '';
-      dateController.clear();
-      hoursController.clear();
-      minutesController.clear();
-      manualEntryNotesController.clear();
-      manualEntryActivityType.value = '';
+      clearManualEntryFields();
       ToastHelper.showSuccessToast('Activity logged successfully');
     } catch (e) {
       ToastHelper.showErrorToast('Failed to log activity');
     }
+  }
+
+  void clearManualEntryFields() {
+    manualEntryActivityType.value = '';
+    dateController.clear();
+    hoursController.clear();
+    minutesController.clear();
+    manualEntryNotesController.clear();
   }
 
   String formatTime(int seconds) {
