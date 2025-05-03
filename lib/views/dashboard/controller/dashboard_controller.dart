@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../../repositories/dashboard_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../utils/toast_helper.dart';
@@ -342,6 +343,88 @@ class DashboardController extends GetxController {
         }
       });
     }
+  }
+
+  Rx<int> currentPage = 1.obs;
+
+  int get getTotalPages => (filteredActivities.length / 10).ceil();
+
+  void previousPage() {
+    if (currentPage.value > 1) {
+      currentPage.value--;
+    }
+  }
+
+  void nextPage() {
+    if (currentPage.value < getTotalPages) {
+      currentPage.value++;
+    }
+  }
+
+  Map<String, dynamic> getData({
+    DateTimeRange? selectedDateTimeRange,
+    int limit = 10,
+  }) {
+    Map<String, dynamic> headerData;
+    List<Map<String, dynamic>> data = [];
+    List<ActivityModel> activitiesData = List.from(filteredActivities);
+    final startIndex = (currentPage.value - 1) * limit;
+    final endIndex = startIndex + limit;
+
+    final validEndIndex =
+        endIndex > activitiesData.length ? activitiesData.length : endIndex;
+
+    List<ActivityModel> paginatedActivities = activitiesData.sublist(
+      startIndex,
+      validEndIndex,
+    );
+
+    headerData = {
+      "Serial Number": 180,
+      "Date": 200,
+      "Time": 200,
+      "Activity": 260,
+      "Duration": 200,
+      "Notes": 200,
+      "Status": 300,
+      "Manual Entry": 200,
+      "Action": 200,
+    };
+
+    for (int i = 0; i < paginatedActivities.length; i++) {
+      String date = DateFormat('E, MMM d').format(paginatedActivities[i].date);
+
+      String time = DateFormat('h:mm a').format(paginatedActivities[i].date);
+
+      String manualEntry = paginatedActivities[i].isManual ? 'Yes' : 'No';
+
+      String activity = paginatedActivities[i].activityType;
+
+      String duration = formatDuration(paginatedActivities[i].durationMinutes);
+
+      String notes = "${paginatedActivities[i].notes}";
+
+      String status =
+          paginatedActivities[i].status == 'in_progress'
+              ? 'In progress'
+              : "Completed";
+
+      String delete = paginatedActivities[i].id;
+
+      data.add({
+        "Serial Number": (i + 1).toString(),
+        "Date": date,
+        "Time": time,
+        "Activity": activity,
+        "Duration": duration,
+        "Notes": notes,
+        "Status": status,
+        "Manual Entry": manualEntry,
+        "Action": delete,
+      });
+    }
+
+    return {'headerData': headerData, 'data': data};
   }
 
   @override

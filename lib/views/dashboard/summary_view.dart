@@ -132,8 +132,9 @@ class SummaryView extends StatelessWidget {
                   isMobile
                       ? constraints.maxWidth.toDouble()
                       : (constraints.maxWidth > 800
-                          ? 500.0
+                          ? (constraints.maxWidth - 48) / 2
                           : constraints.maxWidth - 48.0);
+
               final chartHeight = isMobile ? 300.0 : 400.0;
 
               return Wrap(

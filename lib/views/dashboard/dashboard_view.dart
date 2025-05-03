@@ -8,9 +8,12 @@ import '../../widgets/responsive_layout.dart';
 import '../../widgets/web_header.dart';
 import '../../widgets/common_button.dart';
 import '../../widgets/common_input_field.dart';
+import '../../widgets/custom_table.dart';
+import '../../models/activity_model.dart';
 import 'controller/dashboard_controller.dart';
 import 'package:intl/intl.dart';
 import 'summary_view.dart';
+import '../../widgets/data_table_view.dart';
 
 class DashboardView extends StatelessWidget {
   const DashboardView({super.key});
@@ -185,11 +188,14 @@ class _MobileDashboardView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: false,
         title: Obx(() {
           String userName = controller.userName.value;
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 'Welcome,',
@@ -252,9 +258,9 @@ class _MobileDashboardView extends StatelessWidget {
   }
 }
 
-void _showManualEntryBottomSheet(BuildContext context) {
+Future<void> _showManualEntryBottomSheet(BuildContext context) async {
   final controller = Get.find<DashboardController>();
-  showModalBottomSheet(
+  await showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     builder:
@@ -274,6 +280,7 @@ void _showManualEntryBottomSheet(BuildContext context) {
         ),
   ).whenComplete(() {
     controller.clearManualEntryFields();
+    Navigator.pop(context);
   });
 }
 
@@ -431,217 +438,88 @@ class _ActivityView extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Container(
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
+              color: Colors.blue.withOpacity(0.025),
+              borderRadius: const BorderRadius.all(Radius.circular(8)),
               border: Border.all(color: AppColors.border),
-              borderRadius: BorderRadius.circular(12),
             ),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minWidth: MediaQuery.of(context).size.width - 48,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
+            child: Obx(() {
+              var activitiesData = controller.getData();
+
+              ScrollController scrollController = ScrollController();
+
+              Map<String, dynamic> headerData = activitiesData['headerData'];
+              List<Map<String, dynamic>> data = activitiesData['data'];
+
+              if (data.isEmpty) {
+                return Center(
+                  child: Text(
+                    'No data found!',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                );
+              }
+              if (headerData.isNotEmpty && data.isNotEmpty) {
+                return Column(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    // Table Header
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      child: Table(
-                        columnWidths: const {
-                          0: FixedColumnWidth(180), // Date column
-                          1: FixedColumnWidth(200), // Activity column
-                          2: FixedColumnWidth(120), // Duration column
-                          3: FixedColumnWidth(200), // Notes column
-                          4: FixedColumnWidth(60), // Actions column
-                        },
-                        children: [
-                          TableRow(
-                            children: [
-                              TableCell(
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  child: Text(
-                                    'Date',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              TableCell(
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  child: Text(
-                                    'Activity',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              TableCell(
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  child: Text(
-                                    'Duration',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              TableCell(
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  child: Text(
-                                    'Notes',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              TableCell(
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  child: SizedBox(width: 60),
-                                ),
-                              ),
-                            ],
+                    Scrollbar(
+                      controller: scrollController,
+                      thickness: 5,
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.only(bottom: 10),
+                        controller: scrollController,
+                        scrollDirection: Axis.horizontal,
+                        child: DataView(
+                          controller: controller,
+                          data: data,
+                          headerData: headerData,
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width - 48,
+                            maxHeight: 380,
                           ),
-                        ],
+                        ),
                       ),
                     ),
-                    const Divider(height: 1),
-                    // Table Body
-                    Obx(() {
-                      if (controller.filteredActivities.isEmpty) {
-                        return const Padding(
-                          padding: EdgeInsets.all(24),
-                          child: Center(
-                            child: Text(
-                              'No activities recorded yet',
-                              style: TextStyle(color: AppColors.textSecondary),
-                            ),
-                          ),
-                        );
-                      }
-
-                      return Table(
-                        columnWidths: const {
-                          0: FixedColumnWidth(180), // Date column
-                          1: FixedColumnWidth(200), // Activity column
-                          2: FixedColumnWidth(120), // Duration column
-                          3: FixedColumnWidth(200), // Notes column
-                          4: FixedColumnWidth(60), // Actions column
-                        },
-                        children:
-                            controller.filteredActivities.map((activity) {
-                              return TableRow(
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    bottom: BorderSide(color: AppColors.border),
-                                  ),
-                                ),
-                                children: [
-                                  TableCell(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            DateFormat(
-                                              'E, MMM d',
-                                            ).format(activity.date),
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                          Text(
-                                            DateFormat(
-                                              'h:mm a',
-                                            ).format(activity.date),
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                              color: AppColors.textSecondary,
-                                            ),
-                                          ),
-                                          if (activity.isManual)
-                                            const Text(
-                                              'Manual Entry',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: AppColors.textSecondary,
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  TableCell(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8),
-                                      child: Text(activity.activityType),
-                                    ),
-                                  ),
-                                  TableCell(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8),
-                                      child: Text(
-                                        activity.status == 'in_progress'
-                                            ? 'In progress'
-                                            : controller.formatDuration(
-                                              activity.durationMinutes,
-                                            ),
-                                      ),
-                                    ),
-                                  ),
-                                  TableCell(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8),
-                                      child: Text(
-                                        activity.notes ?? '—',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ),
-                                  TableCell(
-                                    verticalAlignment:
-                                        TableCellVerticalAlignment.middle,
-                                    child: SizedBox(
-                                      width: 60,
-                                      child: IconButton(
-                                        icon: const Icon(Icons.delete_outline),
-                                        onPressed:
-                                            () => controller.deleteActivity(
-                                              activity.id,
-                                            ),
-                                        color: AppColors.error,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            }).toList(),
-                      );
-                    }),
+                    if (controller.filteredActivities.length > 10)
+                      PaginationView(controller: controller),
                   ],
-                ),
-              ),
-            ),
+                );
+              }
+              return const SizedBox.shrink();
+            }),
           ),
         ],
       ),
+    );
+  }
+}
+
+class PaginationView extends StatelessWidget {
+  final DashboardController controller;
+
+  const PaginationView({super.key, required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'Page ${controller.currentPage.value} of ${controller.getTotalPages}',
+        ),
+        IconButton(
+          onPressed: () => controller.previousPage(),
+          icon: Icon(Icons.arrow_back),
+        ),
+        IconButton(
+          onPressed: () => controller.nextPage(),
+          icon: Icon(Icons.arrow_forward),
+        ),
+        SizedBox(width: 20),
+      ],
     );
   }
 }
@@ -719,7 +597,7 @@ class _ManualEntryForm extends StatelessWidget {
           text: 'Add Log Entry',
           onPressed: () {
             controller.addManualEntry();
-            Navigator.pop(context);
+            // Navigator.pop(context);
             controller.clearManualEntryFields();
           },
           isPrimary: true,
@@ -727,6 +605,155 @@ class _ManualEntryForm extends StatelessWidget {
         ),
         const SizedBox(height: 16),
       ],
+    );
+  }
+}
+
+class DataHeader extends StatelessWidget {
+  final Map<String, dynamic> headerData;
+
+  const DataHeader({super.key, required this.headerData});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 40,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children:
+            headerData.entries
+                .map(
+                  (e) =>
+                      SizedBox(width: e.value, child: HeaderTile(title: e.key)),
+                )
+                .expand((element) => [element, const SizedBox(width: 10)])
+                .toList()
+              ..removeLast(),
+      ),
+    );
+  }
+}
+
+class HeaderTile extends StatelessWidget {
+  const HeaderTile({super.key, required this.title, this.alignment});
+
+  final String title;
+  final AlignmentGeometry? alignment;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      alignment: alignment ?? Alignment.center,
+      height: double.infinity,
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: (alignment != null) ? 10 : 5),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withOpacity(0.1),
+        border: Border.all(color: AppColors.border, width: 1.5),
+        borderRadius: const BorderRadius.all(Radius.circular(5)),
+      ),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 16,
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
+
+class DataView extends StatelessWidget {
+  final BoxConstraints constraints;
+  final Map<String, dynamic> headerData;
+  final List<Map<String, dynamic>> data;
+  final DashboardController controller;
+
+  const DataView({
+    super.key,
+    required this.constraints,
+    required this.headerData,
+    required this.data,
+    required this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    double width = headerData.values.fold(
+      0,
+      (value, element) => value + element + 10,
+    );
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        minWidth: width,
+        maxWidth: constraints.maxWidth < width ? width : constraints.maxWidth,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          DataHeader(headerData: headerData),
+          const SizedBox(height: 10),
+          ListView.separated(
+            shrinkWrap: true,
+            padding: EdgeInsets.zero,
+            separatorBuilder: (context, index) {
+              return Divider(height: 20, color: Colors.grey.withOpacity(0.25));
+            },
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: data.length,
+            itemBuilder: (context, index) {
+              Map<String, dynamic>? rowData = data.elementAtOrNull(index);
+              if (rowData == null) return const SizedBox.shrink();
+
+              return SizedBox(
+                height: 40,
+                child: Row(
+                  children:
+                      headerData.entries
+                          .map(
+                            (e) => SizedBox(
+                              width: e.value,
+                              child:
+                                  rowData[e.key] == "Action"
+                                      ? IconButton(
+                                        onPressed: () {
+                                          controller.deleteActivity(
+                                            rowData['id'],
+                                          );
+                                        },
+                                        icon: Icon(Icons.delete),
+                                      )
+                                      : Text(
+                                        rowData[e.key] is DateTime
+                                            ? DateFormat(
+                                              'MMM dd, yyyy HH:mm',
+                                            ).format(rowData[e.key] as DateTime)
+                                            : rowData[e.key]?.toString() ?? "-",
+                                        textAlign: TextAlign.center,
+                                      ),
+                            ),
+                          )
+                          .expand(
+                            (element) => [
+                              element,
+                              SizedBox(
+                                width: 10,
+                                child: VerticalDivider(
+                                  color: Colors.grey.withOpacity(0.25),
+                                ),
+                              ),
+                            ],
+                          )
+                          .toList()
+                        ..removeLast(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }
