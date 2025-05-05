@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../models/activity_model.dart';
 import '../../../utils/excel_helper.dart';
+import '../../../utils/toast_helper.dart';
 import 'dashboard_controller.dart';
 
 class SummaryController extends GetxController {
@@ -27,6 +28,9 @@ class SummaryController extends GetxController {
   List<ActivityModel> get activities =>
       Get.find<DashboardController>().allActivities;
 
+  String userName = Get.find<DashboardController>().userName.value;
+  String position = Get.find<DashboardController>().position.value;
+
   // Get total time for the selected month
   String get totalTime {
     final monthActivities = _getActivitiesForSelectedMonth();
@@ -45,6 +49,8 @@ class SummaryController extends GetxController {
     final Map<String, int> distribution = {};
 
     for (final activity in monthActivities) {
+      print(activity.activityType);
+      print(activity.durationMinutes);
       distribution[activity.activityType] =
           (distribution[activity.activityType] ?? 0) + activity.durationMinutes;
     }
@@ -82,10 +88,21 @@ class SummaryController extends GetxController {
   }
 
   List<ActivityModel> _getActivitiesForSelectedMonth() {
-    return activities.where((activity) {
-      return activity.date.year == selectedYear.value &&
-          activity.date.month == (months.indexOf(selectedMonth.value) + 1);
-    }).toList();
+    final activity =
+        activities.where((activity) {
+          return activity.date.year == selectedYear.value &&
+              activity.date.month == (months.indexOf(selectedMonth.value) + 1);
+        }).toList();
+
+    for (final activity in activities) {
+      if (!activity.isManual) {
+        final now = DateTime.now();
+        final duration = now.difference(activity.startTime!);
+        activity.durationMinutes = duration.inMinutes;
+      }
+    }
+
+    return activity;
   }
 
   void updateMonth(String month) {
@@ -99,11 +116,7 @@ class SummaryController extends GetxController {
   Future<void> exportReport() async {
     final monthActivities = _getActivitiesForSelectedMonth();
     if (monthActivities.isEmpty) {
-      Get.snackbar(
-        'No Data',
-        'There are no activities to export for the selected month.',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      ToastHelper.showErrorToast("No activities found for the selected month.");
       return;
     }
 
@@ -112,20 +125,13 @@ class SummaryController extends GetxController {
         monthActivities,
         selectedMonth.value,
         selectedYear.value,
-        'User Name', // TODO: Get actual user name
-        'Position', // TODO: Get actual position
+        userName,
+        position,
       );
-      Get.snackbar(
-        'Success',
-        'Report exported successfully',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+
+      // ToastHelper.showSuccessToast('Report exported successfully');
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to export report',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      ToastHelper.showErrorToast('Failed to export report');
     }
   }
 }

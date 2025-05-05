@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:excel/excel.dart';
+import 'package:gme_time_tracker/utils/downloader.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import '../models/activity_model.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:universal_html/html.dart' as html;
 
@@ -107,9 +107,7 @@ class ExcelHelper {
         final directory = await getApplicationDocumentsDirectory();
         final file = File('${directory.path}/$fileName');
         await file.writeAsBytes(bytes);
-        await Share.shareXFiles([
-          XFile(file.path),
-        ], text: 'GME Hours Report - $month $year');
+        await Downloader.downloadFile(file: file);
       }
     }
   }

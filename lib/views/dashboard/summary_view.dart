@@ -36,6 +36,7 @@ class SummaryView extends StatelessWidget {
               Wrap(
                 alignment: WrapAlignment.end,
                 runAlignment: WrapAlignment.end,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 runSpacing: 20,
                 spacing: 10,
                 children: [
@@ -82,31 +83,20 @@ class SummaryView extends StatelessWidget {
                       );
                     }),
                   ),
-                  // Container(
-                  //   decoration: BoxDecoration(
-                  //     border: Border.all(color: AppColors.primary),
-                  //     borderRadius: BorderRadius.circular(8),
-                  //   ),
-                  //   child: TextButton.icon(
-                  //     onPressed: () {
-                  //       controller.exportReport();
-                  //     },
-                  //     icon: const Icon(
-                  //       Icons.download,
-                  //       color: AppColors.primary,
-                  //     ),
-                  //     label: const Text(
-                  //       'Export PDF',
-                  //       style: TextStyle(color: AppColors.primary),
-                  //     ),
-                  //     style: TextButton.styleFrom(
-                  //       padding: const EdgeInsets.symmetric(
-                  //         horizontal: 16,
-                  //         vertical: 12,
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
+                  GestureDetector(
+                    onTap: () => controller.exportReport(),
+                    child: Container(
+                      padding: const EdgeInsets.all(13),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.primary),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.download,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -135,7 +125,7 @@ class SummaryView extends StatelessWidget {
                           ? (constraints.maxWidth - 48) / 2
                           : constraints.maxWidth - 48.0);
 
-              final chartHeight = isMobile ? 300.0 : 400.0;
+              final chartHeight = isMobile ? 400.0 : 400.0;
 
               return Wrap(
                 spacing: isMobile ? 16.0 : 24.0,
@@ -161,46 +151,61 @@ class SummaryView extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         Expanded(
-                          child: Obx(() {
-                            final data = controller.getActivityDistribution();
-                            return SfCircularChart(
-                              legend: Legend(
-                                isVisible: true,
-                                position:
-                                    isMobile
-                                        ? LegendPosition.bottom
-                                        : LegendPosition.right,
-                                orientation:
-                                    isMobile
-                                        ? LegendItemOrientation.horizontal
-                                        : LegendItemOrientation.vertical,
-                              ),
-                              series: <CircularSeries>[
-                                DoughnutSeries<ActivityDistribution, String>(
-                                  dataSource: data,
-                                  xValueMapper:
-                                      (ActivityDistribution data, _) =>
-                                          data.activity,
-                                  yValueMapper:
-                                      (ActivityDistribution data, _) =>
-                                          data.minutes,
-                                  dataLabelMapper:
-                                      (ActivityDistribution data, _) =>
-                                          data.duration,
-                                  dataLabelSettings: DataLabelSettings(
-                                    isVisible: true,
-                                    labelPosition:
-                                        isMobile
-                                            ? ChartDataLabelPosition.outside
-                                            : ChartDataLabelPosition.inside,
-                                    textStyle: TextStyle(
-                                      fontSize: isMobile ? 10 : 12,
+                          child: Center(
+                            child: Obx(() {
+                              final data = controller.getActivityDistribution();
+
+                              if (data.isEmpty) {
+                                return const Text('No data available');
+                              }
+
+                              return SfCircularChart(
+                                legend: Legend(
+                                  // height: "35%",
+                                  // width: "65%",
+                                  iconHeight: 25,
+                                  iconBorderWidth: 25,
+                                  overflowMode:
+                                      isMobile
+                                          ? LegendItemOverflowMode.wrap
+                                          : LegendItemOverflowMode.scroll,
+                                  isVisible: true,
+                                  position:
+                                      isMobile
+                                          ? LegendPosition.bottom
+                                          : LegendPosition.right,
+                                  orientation:
+                                      isMobile
+                                          ? LegendItemOrientation.vertical
+                                          : LegendItemOrientation.vertical,
+                                ),
+                                series: <CircularSeries>[
+                                  DoughnutSeries<ActivityDistribution, String>(
+                                    dataSource: data,
+                                    xValueMapper:
+                                        (ActivityDistribution data, _) =>
+                                            data.activity,
+                                    yValueMapper:
+                                        (ActivityDistribution data, _) =>
+                                            data.minutes,
+                                    dataLabelMapper:
+                                        (ActivityDistribution data, _) =>
+                                            data.duration,
+                                    dataLabelSettings: DataLabelSettings(
+                                      isVisible: true,
+                                      labelPosition:
+                                          isMobile
+                                              ? ChartDataLabelPosition.outside
+                                              : ChartDataLabelPosition.inside,
+                                      textStyle: TextStyle(
+                                        fontSize: isMobile ? 10 : 12,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            );
-                          }),
+                                ],
+                              );
+                            }),
+                          ),
                         ),
                       ],
                     ),

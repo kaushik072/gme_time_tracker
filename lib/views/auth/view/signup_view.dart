@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:gme_time_tracker/utils/constants_data.dart';
 import 'package:go_router/go_router.dart';
 import '../../../routes/app_routes.dart';
 import '../../../utils/app_colors.dart';
@@ -323,11 +324,7 @@ class _MobileSignUpView extends StatelessWidget {
                     : controller.selectedDegree.value,
             labelText: 'Degree',
             hintText: 'Select Degree',
-            items: const [
-              DropdownMenuItem(value: 'bachelor', child: Text('Bachelor')),
-              DropdownMenuItem(value: 'master', child: Text('Master')),
-              DropdownMenuItem(value: 'phd', child: Text('PhD')),
-            ],
+            items: ConstantsData.instance.getDegreeItems(),
             onChanged: (value) => controller.selectedDegree.value = value ?? '',
           ),
         ),
@@ -340,11 +337,7 @@ class _MobileSignUpView extends StatelessWidget {
                     : controller.selectedPosition.value,
             labelText: 'Position',
             hintText: 'Select Position',
-            items: const [
-              DropdownMenuItem(value: 'student', child: Text('Student')),
-              DropdownMenuItem(value: 'professor', child: Text('Professor')),
-              DropdownMenuItem(value: 'staff', child: Text('Staff')),
-            ],
+            items: ConstantsData.instance.getPositionItems(),
             onChanged:
                 (value) => controller.selectedPosition.value = value ?? '',
           ),

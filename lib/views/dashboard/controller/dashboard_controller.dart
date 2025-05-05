@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -25,6 +26,7 @@ class DashboardController extends GetxController {
 
   // User data
   RxString userName = ''.obs;
+  RxString position = ''.obs;
 
   final activityTypeController = TextEditingController();
   final trackingNotesController = TextEditingController();
@@ -32,17 +34,6 @@ class DashboardController extends GetxController {
   final dateController = TextEditingController();
   final hoursController = TextEditingController();
   final minutesController = TextEditingController();
-
-  final activityTypes = [
-    'Clinical Teaching',
-    'Didactic Teaching',
-    'Curriculum Development',
-    'Assessment & Evaluation',
-    'Mentorship & Advising',
-    'Program Administration',
-    'Faculty Development',
-    'Scholarly Activity',
-  ];
 
   @override
   void onInit() {
@@ -77,29 +68,27 @@ class DashboardController extends GetxController {
     _repository
         .getActivities() // Remove the filter parameter since we'll filter locally
         .listen(
-          (activityList) {
-            debugPrint('Activity list: $activityList');
-            allActivities.value = activityList;
-            _filterActivities(); // Apply current filter to new data
-          },
-          onError: (error) {
-            debugPrint('Error fetching activities: $error');
-            ToastHelper.showErrorToast('Failed to load activities');
-          },
-        );
+      (activityList) {
+        debugPrint('Activity list: $activityList');
+        allActivities.value = activityList;
+        _filterActivities(); // Apply current filter to new data
+      },
+      onError: (error) {
+        debugPrint('Error fetching activities: $error');
+        ToastHelper.showErrorToast('Failed to load activities');
+      },
+    );
   }
 
   void _filterActivities() {
     if (selectedActivityFilter.value == 'All Activities') {
       filteredActivities.value = allActivities;
     } else {
-      filteredActivities.value =
-          allActivities
-              .where(
-                (activity) =>
-                    activity.activityType == selectedActivityFilter.value,
-              )
-              .toList();
+      filteredActivities.value = allActivities
+          .where(
+            (activity) => activity.activityType == selectedActivityFilter.value,
+          )
+          .toList();
     }
   }
 
@@ -239,7 +228,7 @@ class DashboardController extends GetxController {
     }
   }
 
-  Future<void> addManualEntry() async {
+  Future<void> addManualEntry(BuildContext context) async {
     if (manualEntryActivityType.value.isEmpty ||
         dateController.text.isEmpty ||
         (hoursController.text.isEmpty && minutesController.text.isEmpty)) {
@@ -263,11 +252,15 @@ class DashboardController extends GetxController {
         durationMinutes: totalMinutes,
         notes: manualEntryNotesController.text,
       );
-
-      clearManualEntryFields();
       ToastHelper.showSuccessToast('Activity logged successfully');
+      if (!kIsWeb) {
+        Navigator.pop(context);
+      }
     } catch (e) {
+      print(e.toString());
       ToastHelper.showErrorToast('Failed to log activity');
+    } finally {
+      clearManualEntryFields();
     }
   }
 
@@ -361,12 +354,23 @@ class DashboardController extends GetxController {
     }
   }
 
-  Map<String, dynamic> getData({
+  Map<String, double> headerData = {
+    "#": 60,
+    "Date": 180,
+    "Time": 180,
+    "Activity": 260,
+    "Duration": 180,
+    "Notes": 200,
+    "Status": 200,
+    "Manual Entry": 150,
+    "Action": 120,
+  };
+
+  List<Map<String, String>> getData({
     DateTimeRange? selectedDateTimeRange,
     int limit = 10,
   }) {
-    Map<String, dynamic> headerData;
-    List<Map<String, dynamic>> data = [];
+    List<Map<String, String>> data = [];
     List<ActivityModel> activitiesData = List.from(filteredActivities);
     final startIndex = (currentPage.value - 1) * limit;
     final endIndex = startIndex + limit;
@@ -378,18 +382,6 @@ class DashboardController extends GetxController {
       startIndex,
       validEndIndex,
     );
-
-    headerData = {
-      "Serial Number": 180,
-      "Date": 200,
-      "Time": 200,
-      "Activity": 260,
-      "Duration": 200,
-      "Notes": 200,
-      "Status": 300,
-      "Manual Entry": 200,
-      "Action": 200,
-    };
 
     for (int i = 0; i < paginatedActivities.length; i++) {
       String date = DateFormat('E, MMM d').format(paginatedActivities[i].date);
@@ -404,15 +396,14 @@ class DashboardController extends GetxController {
 
       String notes = "${paginatedActivities[i].notes}";
 
-      String status =
-          paginatedActivities[i].status == 'in_progress'
-              ? 'In progress'
-              : "Completed";
+      String status = paginatedActivities[i].status == 'in_progress'
+          ? 'In progress'
+          : "Completed";
 
       String delete = paginatedActivities[i].id;
 
       data.add({
-        "Serial Number": (i + 1).toString(),
+        "#": (((currentPage.value - 1) * limit) + (i + 1)).toString(),
         "Date": date,
         "Time": time,
         "Activity": activity,
@@ -424,7 +415,7 @@ class DashboardController extends GetxController {
       });
     }
 
-    return {'headerData': headerData, 'data': data};
+    return data;
   }
 
   @override

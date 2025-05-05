@@ -5,7 +5,7 @@ class ActivityModel {
   final String userId;
   final String activityType;
   final DateTime date;
-  final int durationMinutes;
+  int durationMinutes;
   final String? notes;
   final bool isManual;
   final String status;
@@ -33,7 +33,6 @@ class ActivityModel {
     final endTimeData = data['endTime'] as Timestamp?;
     final dateData = data['date'] as Timestamp?;
     final createdAtData = data['createdAt'] as Timestamp?;
-
     return ActivityModel(
       id: doc.id,
       userId: data['userId'] as String,

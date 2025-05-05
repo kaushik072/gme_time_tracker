@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:gme_time_tracker/utils/constants_data.dart';
 import 'package:go_router/go_router.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/toast_helper.dart';
@@ -280,7 +281,6 @@ Future<void> _showManualEntryBottomSheet(BuildContext context) async {
         ),
   ).whenComplete(() {
     controller.clearManualEntryFields();
-    Navigator.pop(context);
   });
 }
 
@@ -322,7 +322,7 @@ timerStartStopView(DashboardController controller) {
                     ? null
                     : controller.trackingActivityType.value,
             items:
-                controller.activityTypes
+                ConstantsData.instance.activityTypes
                     .map(
                       (type) =>
                           DropdownMenuItem(value: type, child: Text(type)),
@@ -418,9 +418,10 @@ class _ActivityView extends StatelessWidget {
                   return CommonDropdownButton<String>(
                     value: controller.selectedActivityFilter.value,
                     items:
-                        ['All Activities', ...controller.activityTypes].map((
-                          String value,
-                        ) {
+                        [
+                          'All Activities',
+                          ...ConstantsData.instance.activityTypes,
+                        ].map((String value) {
                           return DropdownMenuItem<String>(
                             value: value,
                             child: Text(value),
@@ -445,12 +446,9 @@ class _ActivityView extends StatelessWidget {
               border: Border.all(color: AppColors.border),
             ),
             child: Obx(() {
-              var activitiesData = controller.getData();
+              List<Map<String, dynamic>> data = controller.getData();
 
               ScrollController scrollController = ScrollController();
-
-              Map<String, dynamic> headerData = activitiesData['headerData'];
-              List<Map<String, dynamic>> data = activitiesData['data'];
 
               if (data.isEmpty) {
                 return Center(
@@ -460,7 +458,7 @@ class _ActivityView extends StatelessWidget {
                   ),
                 );
               }
-              if (headerData.isNotEmpty && data.isNotEmpty) {
+              if (data.isNotEmpty) {
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -475,7 +473,7 @@ class _ActivityView extends StatelessWidget {
                         child: DataView(
                           controller: controller,
                           data: data,
-                          headerData: headerData,
+                          headerData: controller.headerData,
                           constraints: BoxConstraints(
                             maxWidth: MediaQuery.of(context).size.width - 48,
                             maxHeight: 380,
@@ -510,15 +508,16 @@ class PaginationView extends StatelessWidget {
         Text(
           'Page ${controller.currentPage.value} of ${controller.getTotalPages}',
         ),
+        SizedBox(width: 5),
         IconButton(
           onPressed: () => controller.previousPage(),
-          icon: Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back_ios),
         ),
         IconButton(
           onPressed: () => controller.nextPage(),
-          icon: Icon(Icons.arrow_forward),
+          icon: Icon(Icons.arrow_forward_ios),
         ),
-        SizedBox(width: 20),
+        SizedBox(width: 15),
       ],
     );
   }
@@ -542,7 +541,7 @@ class _ManualEntryForm extends StatelessWidget {
                     ? null
                     : controller.manualEntryActivityType.value,
             items:
-                controller.activityTypes
+                ConstantsData.instance.activityTypes
                     .map(
                       (type) =>
                           DropdownMenuItem(value: type, child: Text(type)),
@@ -553,7 +552,6 @@ class _ManualEntryForm extends StatelessWidget {
                     controller.manualEntryActivityType.value = value ?? '',
           );
         }),
-
         SizedBox(height: 16),
         CommonTextField(
           controller: controller.dateController,
@@ -569,7 +567,7 @@ class _ManualEntryForm extends StatelessWidget {
               child: CommonTextField(
                 controller: controller.hoursController,
                 labelText: 'Hours',
-                hintText: '0',
+                hintText: 'HH',
                 keyboardType: TextInputType.number,
               ),
             ),
@@ -578,7 +576,7 @@ class _ManualEntryForm extends StatelessWidget {
               child: CommonTextField(
                 controller: controller.minutesController,
                 labelText: 'Minutes',
-                hintText: '0',
+                hintText: 'MM',
                 keyboardType: TextInputType.number,
               ),
             ),
@@ -596,9 +594,7 @@ class _ManualEntryForm extends StatelessWidget {
         CommonButton(
           text: 'Add Log Entry',
           onPressed: () {
-            controller.addManualEntry();
-            // Navigator.pop(context);
-            controller.clearManualEntryFields();
+            controller.addManualEntry(context);
           },
           isPrimary: true,
           width: double.infinity,
@@ -610,7 +606,7 @@ class _ManualEntryForm extends StatelessWidget {
 }
 
 class DataHeader extends StatelessWidget {
-  final Map<String, dynamic> headerData;
+  final Map<String, double> headerData;
 
   const DataHeader({super.key, required this.headerData});
 
@@ -623,8 +619,10 @@ class DataHeader extends StatelessWidget {
         children:
             headerData.entries
                 .map(
-                  (e) =>
-                      SizedBox(width: e.value, child: HeaderTile(title: e.key)),
+                  (e) => SizedBox(
+                    width: e.value.toDouble(),
+                    child: HeaderTile(title: e.key),
+                  ),
                 )
                 .expand((element) => [element, const SizedBox(width: 10)])
                 .toList()
@@ -666,7 +664,7 @@ class HeaderTile extends StatelessWidget {
 
 class DataView extends StatelessWidget {
   final BoxConstraints constraints;
-  final Map<String, dynamic> headerData;
+  final Map<String, double> headerData;
   final List<Map<String, dynamic>> data;
   final DashboardController controller;
 
@@ -714,16 +712,19 @@ class DataView extends StatelessWidget {
                       headerData.entries
                           .map(
                             (e) => SizedBox(
-                              width: e.value,
+                              width: e.value.toDouble(),
                               child:
-                                  rowData[e.key] == "Action"
+                                  e.key == "Action"
                                       ? IconButton(
-                                        onPressed: () {
-                                          controller.deleteActivity(
-                                            rowData['id'],
+                                        onPressed: () async {
+                                          await controller.deleteActivity(
+                                            rowData[e.key],
                                           );
                                         },
-                                        icon: Icon(Icons.delete),
+                                        icon: Icon(
+                                          Icons.delete,
+                                          color: Colors.red,
+                                        ),
                                       )
                                       : Text(
                                         rowData[e.key] is DateTime

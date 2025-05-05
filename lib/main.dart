@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gme_time_tracker/firebase_options.dart';
+import 'package:gme_time_tracker/utils/constants_data.dart';
 import 'package:toastification/toastification.dart';
 import 'routes/app_routes.dart';
 import 'utils/app_colors.dart';
@@ -10,6 +11,11 @@ import 'utils/app_strings.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Initialize ConstantsData and wait for it to complete
+  final constantsData = Get.put(ConstantsData());
+  await constantsData.init();
+
   runApp(const MyApp());
 }
 
