@@ -4,12 +4,14 @@ import '../views/auth/view/login_view.dart';
 import '../views/auth/view/signup_view.dart';
 import '../views/dashboard/dashboard_view.dart';
 import '../views/onboarding/onboarding_view.dart';
+import '../views/profile/profile_view.dart';
 
 class AppRoutes {
   static const String onboarding = '/';
   static const String login = '/login';
   static const String signUp = '/signup';
   static const String dashboard = '/dashboard';
+  static const String profile = '/profile';
 
   // List of public routes that don't require authentication
   static final List<String> publicRoutes = [
@@ -48,6 +50,7 @@ class AppRoutes {
         path: dashboard,
         builder: (context, state) => const DashboardView(),
       ),
+      GoRoute(path: profile, builder: (context, state) => const ProfileView()),
     ],
   );
 }

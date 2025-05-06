@@ -1,7 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../../models/user_model.dart';
 import '../../../repositories/dashboard_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../utils/toast_helper.dart';
@@ -24,9 +24,12 @@ class DashboardController extends GetxController {
   final selectedActivityFilter = 'All Activities'.obs;
   final filteredActivities = <ActivityModel>[].obs;
 
-  // User data
-  RxString userName = ''.obs;
-  RxString position = ''.obs;
+  final originalFirstName = ''.obs;
+  final originalLastName = ''.obs;
+  final originalDegree = ''.obs;
+  final originalPosition = ''.obs;
+
+  Rx<UserModel?> user = Rx<UserModel?>(null);
 
   final activityTypeController = TextEditingController();
   final trackingNotesController = TextEditingController();
@@ -54,11 +57,13 @@ class DashboardController extends GetxController {
         debugPrint('Error: User ID is null');
         return;
       }
-      final data = await _repository.fetchUserData(userId);
-      if (data != null) {
-        userName.value = '${data['firstName']} ${data['lastName']}';
-        print("userName: ${userName.value}");
-      }
+      final data = _repository.getUserStream(userId);
+
+      data.listen((userData) {
+        if (userData != null) {
+          user.value = userData;
+        }
+      });
     } catch (e) {
       debugPrint('Error fetching user data: $e');
     }
@@ -68,27 +73,29 @@ class DashboardController extends GetxController {
     _repository
         .getActivities() // Remove the filter parameter since we'll filter locally
         .listen(
-      (activityList) {
-        debugPrint('Activity list: $activityList');
-        allActivities.value = activityList;
-        _filterActivities(); // Apply current filter to new data
-      },
-      onError: (error) {
-        debugPrint('Error fetching activities: $error');
-        ToastHelper.showErrorToast('Failed to load activities');
-      },
-    );
+          (activityList) {
+            debugPrint('Activity list: $activityList');
+            allActivities.value = activityList;
+            _filterActivities(); // Apply current filter to new data
+          },
+          onError: (error) {
+            debugPrint('Error fetching activities: $error');
+            ToastHelper.showErrorToast('Failed to load activities');
+          },
+        );
   }
 
   void _filterActivities() {
     if (selectedActivityFilter.value == 'All Activities') {
       filteredActivities.value = allActivities;
     } else {
-      filteredActivities.value = allActivities
-          .where(
-            (activity) => activity.activityType == selectedActivityFilter.value,
-          )
-          .toList();
+      filteredActivities.value =
+          allActivities
+              .where(
+                (activity) =>
+                    activity.activityType == selectedActivityFilter.value,
+              )
+              .toList();
     }
   }
 
@@ -228,7 +235,7 @@ class DashboardController extends GetxController {
     }
   }
 
-  Future<void> addManualEntry(BuildContext context) async {
+  Future<void> addManualEntry(BuildContext context, bool canBack) async {
     if (manualEntryActivityType.value.isEmpty ||
         dateController.text.isEmpty ||
         (hoursController.text.isEmpty && minutesController.text.isEmpty)) {
@@ -253,7 +260,7 @@ class DashboardController extends GetxController {
         notes: manualEntryNotesController.text,
       );
       ToastHelper.showSuccessToast('Activity logged successfully');
-      if (!kIsWeb) {
+      if (canBack) {
         Navigator.pop(context);
       }
     } catch (e) {
@@ -356,8 +363,7 @@ class DashboardController extends GetxController {
 
   Map<String, double> headerData = {
     "#": 60,
-    "Date": 180,
-    "Time": 180,
+    "Date-Time": 200,
     "Activity": 260,
     "Duration": 180,
     "Notes": 200,
@@ -372,6 +378,9 @@ class DashboardController extends GetxController {
   }) {
     List<Map<String, String>> data = [];
     List<ActivityModel> activitiesData = List.from(filteredActivities);
+
+    activitiesData.sort((a, b) => b.date.compareTo(a.date));
+
     final startIndex = (currentPage.value - 1) * limit;
     final endIndex = startIndex + limit;
 
@@ -396,16 +405,16 @@ class DashboardController extends GetxController {
 
       String notes = "${paginatedActivities[i].notes}";
 
-      String status = paginatedActivities[i].status == 'in_progress'
-          ? 'In progress'
-          : "Completed";
+      String status =
+          paginatedActivities[i].status == 'in_progress'
+              ? 'In progress'
+              : "Completed";
 
       String delete = paginatedActivities[i].id;
 
       data.add({
         "#": (((currentPage.value - 1) * limit) + (i + 1)).toString(),
-        "Date": date,
-        "Time": time,
+        "Date-Time": "$date\n$time",
         "Activity": activity,
         "Duration": duration,
         "Notes": notes,
@@ -416,6 +425,28 @@ class DashboardController extends GetxController {
     }
 
     return data;
+  }
+
+  Future<bool> updateUser({
+    required String firstName,
+    required String lastName,
+    String? degree,
+    String? position,
+  }) async {
+    try {
+      await _repository.updateUser(
+        userId: user.value?.id ?? '',
+        firstName: firstName,
+        lastName: lastName,
+        degree: degree,
+        position: position,
+      );
+      ToastHelper.showSuccessToast('User updated successfully');
+      return true;
+    } catch (e) {
+      ToastHelper.showErrorToast('Failed to update user');
+      return false;
+    }
   }
 
   @override

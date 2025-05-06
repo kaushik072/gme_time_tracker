@@ -28,8 +28,8 @@ class SummaryController extends GetxController {
   List<ActivityModel> get activities =>
       Get.find<DashboardController>().allActivities;
 
-  String userName = Get.find<DashboardController>().userName.value;
-  String position = Get.find<DashboardController>().position.value;
+  String userName = Get.find<DashboardController>().user.value?.firstName ?? "";
+  String position = Get.find<DashboardController>().user.value?.position ?? "";
 
   // Get total time for the selected month
   String get totalTime {

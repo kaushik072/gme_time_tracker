@@ -5,6 +5,7 @@ import '../utils/app_colors.dart';
 import '../utils/app_strings.dart';
 import '../utils/toast_helper.dart';
 import '../routes/app_routes.dart';
+import '../views/profile/profile_view.dart';
 import 'common_button.dart';
 
 class WebHeader extends StatelessWidget implements PreferredSizeWidget {
@@ -23,7 +24,9 @@ class WebHeader extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 80,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: EdgeInsets.symmetric(
+        horizontal: MediaQuery.of(context).size.width * 0.04,
+      ),
       decoration: BoxDecoration(
         color: AppColors.background,
         border: Border(bottom: BorderSide(color: AppColors.border)),
@@ -116,6 +119,54 @@ class WebHeader extends StatelessWidget implements PreferredSizeWidget {
                   if (context.mounted) {
                     ToastHelper.showSuccessToast('Successfully logged out');
                     context.go('/login');
+                  }
+                } else if (value == 'profile') {
+                  if (context.mounted) {
+                    showDialog(
+                      context: context,
+                      builder:
+                          (context) => Dialog(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Container(
+                              width: 800,
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'Profile',
+                                        style: TextStyle(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Spacer(),
+                                      IconButton(
+                                        onPressed: () {
+                                          context.pop();
+                                        },
+                                        icon: Icon(Icons.close),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 24),
+                                  ProfileView(canBack: true),
+                                ],
+                              ),
+                            ),
+                          ),
+                    );
                   }
                 }
               },

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
+import 'package:gme_time_tracker/models/user_model.dart';
 import '../utils/auth_service.dart';
 import '../models/activity_model.dart';
 
@@ -103,16 +104,69 @@ class DashboardRepository {
     await _firestore.collection('tracking').doc(activityId).delete();
   }
 
-  Future<Map<String, dynamic>?> fetchUserData(String userId) async {
+  Future<void> updateUser({
+    required String userId,
+    required String firstName,
+    required String lastName,
+    String? degree,
+    String? position,
+  }) async {
+    await _firestore.collection('users').doc(userId).update({
+      'firstName': firstName,
+      'lastName': lastName,
+      'degree': degree,
+      'position': position,
+    });
+  }
+  // Future<Map<String, dynamic>?> fetchUserData(String userId) async {
+  //   try {
+  //     final userDoc = await _firestore.collection('users').doc(userId).get();
+  //     if (userDoc.exists) {
+  //       return userDoc.data() as Map<String, dynamic>;
+  //     }
+  //     return null;
+  //   } catch (e) {
+  //     debugPrint('Error fetching user data: $e');
+  //     return null;
+  //   }
+  // }
+
+  //create user stream
+
+  Stream<UserModel?> getUserStream(String userId) {
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .snapshots()
+        .map(
+          (doc) =>
+              doc.data() != null
+                  ? UserModel.fromJson(
+                    doc.data() as Map<String, dynamic>,
+                    doc.id,
+                  )
+                  : null,
+        );
+  }
+
+  Future<void> updateUserData({
+    required String userId,
+    required String firstName,
+    required String lastName,
+    required String degree,
+    required String position,
+  }) async {
     try {
-      final userDoc = await _firestore.collection('users').doc(userId).get();
-      if (userDoc.exists) {
-        return userDoc.data() as Map<String, dynamic>;
-      }
-      return null;
+      await _firestore.collection('users').doc(userId).update({
+        'firstName': firstName,
+        'lastName': lastName,
+        'degree': degree,
+        'position': position,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
     } catch (e) {
-      debugPrint('Error fetching user data: $e');
-      return null;
+      debugPrint('Error updating user data: $e');
+      rethrow;
     }
   }
 }

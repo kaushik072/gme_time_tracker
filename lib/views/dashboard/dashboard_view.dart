@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:gme_time_tracker/utils/constants_data.dart';
 import 'package:go_router/go_router.dart';
 import '../../utils/app_colors.dart';
@@ -9,12 +10,10 @@ import '../../widgets/responsive_layout.dart';
 import '../../widgets/web_header.dart';
 import '../../widgets/common_button.dart';
 import '../../widgets/common_input_field.dart';
-import '../../widgets/custom_table.dart';
-import '../../models/activity_model.dart';
 import 'controller/dashboard_controller.dart';
 import 'package:intl/intl.dart';
 import 'summary_view.dart';
-import '../../widgets/data_table_view.dart';
+import '../profile/profile_view.dart';
 
 class DashboardView extends StatelessWidget {
   const DashboardView({super.key});
@@ -43,103 +42,93 @@ class _WebDashboardView extends StatelessWidget {
             controller.scrollToSection(index);
           },
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(24),
-          child: SingleChildScrollView(
-            controller: controller.scrollController,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Time Tracking Section
-                Container(
-                  key: controller.sectionKeys[0],
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _SectionTitle(
-                        title: 'Time Tracking',
-                        description:
-                            'Track your time spent on various activities in real-time',
-                      ),
+        body: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width * 0.04,
+            vertical: 24,
+          ),
+          controller: controller.scrollController,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Time Tracking Section
+              Container(
+                key: controller.sectionKeys[0],
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _SectionTitle(
+                      title: 'Time Tracking',
+                      description:
+                          'Track your time spent on various activities in real-time',
+                    ),
 
-                      SizedBox(
-                        width: double.infinity,
-                        child: SingleChildScrollView(
-                          child: Wrap(
-                            alignment: WrapAlignment.spaceEvenly,
-                            runAlignment: WrapAlignment.spaceEvenly,
-                            children: [
-                              Container(
-                                height: 540,
-                                margin: EdgeInsets.all(15),
-                                constraints: const BoxConstraints(
-                                  minWidth: 300,
-                                  maxWidth: 650,
-                                ),
-                                padding: const EdgeInsets.all(24),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: AppColors.border),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: _ManualEntryForm(),
-                              ),
-                              Container(
-                                height: 450,
-                                constraints: const BoxConstraints(
-                                  minWidth: 300,
-                                  maxWidth: 650,
-                                ),
-                                margin: EdgeInsets.all(15),
-                                padding: const EdgeInsets.all(24),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: AppColors.border),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: timerStartStopView(controller),
-                              ),
-                            ],
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            height: 525,
+
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: AppColors.border),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: timerStartStopView(controller),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
+                        SizedBox(width: 24),
+                        Expanded(
+                          child: Container(
+                            height: 525,
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: AppColors.border),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: ManualEntryForm(canBack: false),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 40),
+              ),
+              const SizedBox(height: 50),
 
-                // Activity Section
-                Container(
-                  key: controller.sectionKeys[1],
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _SectionTitle(
-                        title: 'Activity Tracking',
-                        description:
-                            'View and manage your logged activities and time entries',
-                      ),
-                      _ActivityView(),
-                    ],
-                  ),
+              // Activity Section
+              Container(
+                key: controller.sectionKeys[1],
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _SectionTitle(
+                      title: 'Activity Tracking',
+                      description:
+                          'View and manage your logged activities and time entries',
+                    ),
+                    _ActivityView(),
+                  ],
                 ),
-                const SizedBox(height: 40),
+              ),
+              const SizedBox(height: 50),
 
-                // Summary Section
-                Container(
-                  key: controller.sectionKeys[2],
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _SectionTitle(
-                        title: 'Monthly Summary',
-                        description:
-                            'Review your activity summary and export reports',
-                      ),
-                      SummaryView(),
-                    ],
-                  ),
+              // Summary Section
+              Container(
+                key: controller.sectionKeys[2],
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _SectionTitle(
+                      title: 'Monthly Summary',
+                      description:
+                          'Review your activity summary and export reports',
+                    ),
+                    SummaryView(),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -191,7 +180,8 @@ class _MobileDashboardView extends StatelessWidget {
       appBar: AppBar(
         centerTitle: false,
         title: Obx(() {
-          String userName = controller.userName.value;
+          String userName =
+              "${controller.user.value?.firstName ?? ""} ${controller.user.value?.lastName ?? ""}";
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -226,20 +216,38 @@ class _MobileDashboardView extends StatelessWidget {
           ),
         ],
       ),
-      body: Obx(() {
-        switch (controller.selectedTab.value) {
-          case 0:
-            return _TrackingView();
-          case 1:
-            return _ActivityView();
-          case 2:
-            return SummaryView();
-          default:
-            return _TrackingView();
-        }
-      }),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(20),
+        child: Obx(() {
+          switch (controller.selectedTab.value) {
+            case 0:
+              return _TrackingView();
+            case 1:
+              return _ActivityView();
+            case 2:
+              return SummaryView();
+            case 3:
+              return const ProfileView();
+            default:
+              return _TrackingView();
+          }
+        }),
+      ),
       bottomNavigationBar: Obx(() {
         return BottomNavigationBar(
+          backgroundColor: AppColors.background,
+          selectedItemColor: AppColors.primary,
+          unselectedItemColor: AppColors.textSecondary,
+          selectedLabelStyle: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+          ),
+          unselectedLabelStyle: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.normal,
+          ),
+          selectedIconTheme: IconThemeData(color: AppColors.primary),
+          unselectedIconTheme: IconThemeData(color: AppColors.textSecondary),
           currentIndex: controller.selectedTab.value,
           onTap: (index) => controller.selectedTab.value = index,
           items: const [
@@ -252,6 +260,7 @@ class _MobileDashboardView extends StatelessWidget {
               icon: Icon(Icons.bar_chart),
               label: 'Summary',
             ),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           ],
         );
       }),
@@ -275,7 +284,7 @@ Future<void> _showManualEntryBottomSheet(BuildContext context) async {
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: [_ManualEntryForm()],
+              children: [ManualEntryForm(canBack: true)],
             ),
           ),
         ),
@@ -288,6 +297,7 @@ timerStartStopView(DashboardController controller) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
+      SizedBox(height: 20),
       Center(
         child: Obx(() {
           return Row(
@@ -367,22 +377,19 @@ class _TrackingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          SizedBox(height: 450, child: timerStartStopView(controller)),
-          const SizedBox(height: 24),
-          CommonButton(
-            text: "Add Manual Entry",
-            onPressed: () {
-              _showManualEntryBottomSheet(context);
-            },
-            isPrimary: true,
-            width: double.infinity,
-          ),
-        ],
-      ),
+    return Column(
+      children: [
+        SizedBox(height: 450, child: timerStartStopView(controller)),
+        const SizedBox(height: 24),
+        CommonButton(
+          text: "Add Manual Entry",
+          onPressed: () {
+            _showManualEntryBottomSheet(context);
+          },
+          isPrimary: true,
+          width: double.infinity,
+        ),
+      ],
     );
   }
 }
@@ -392,105 +399,123 @@ class _ActivityView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            runAlignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            runSpacing: 20,
-            spacing: 20,
-            children: [
-              const Text(
-                'Recent Activity Logs',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          runAlignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          runSpacing: 20,
+          spacing: 20,
+          children: [
+            const Text(
+              'Recent Activity Logs',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
               ),
-              SizedBox(
-                width: 240,
-                child: Obx(() {
-                  return CommonDropdownButton<String>(
-                    value: controller.selectedActivityFilter.value,
-                    items:
-                        [
-                          'All Activities',
-                          ...ConstantsData.instance.activityTypes,
-                        ].map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                    onChanged: (String? newValue) {
-                      if (newValue != null) {
-                        controller.selectedActivityFilter.value = newValue;
-                      }
-                    },
-                  );
-                }),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.025),
-              borderRadius: const BorderRadius.all(Radius.circular(8)),
-              border: Border.all(color: AppColors.border),
             ),
-            child: Obx(() {
-              List<Map<String, dynamic>> data = controller.getData();
-
-              ScrollController scrollController = ScrollController();
-
-              if (data.isEmpty) {
-                return Center(
-                  child: Text(
-                    'No data found!',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+            SizedBox(
+              width: 240,
+              child: Obx(() {
+                return CommonDropdownButton<String>(
+                  value: controller.selectedActivityFilter.value,
+                  items:
+                      [
+                        'All Activities',
+                        ...ConstantsData.instance.activityTypes,
+                      ].map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                  onChanged: (String? newValue) {
+                    if (newValue != null) {
+                      controller.selectedActivityFilter.value = newValue;
+                    }
+                  },
                 );
-              }
-              if (data.isNotEmpty) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Scrollbar(
+              }),
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.blue.withOpacity(0.025),
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Obx(() {
+            List<Map<String, dynamic>> data = controller.getData();
+
+            ScrollController scrollController = ScrollController();
+
+            if (data.isEmpty) {
+              return Container(
+                alignment: Alignment.center,
+                height: 300,
+                child: Text(
+                  'No data found!',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              );
+            }
+            if (data.isNotEmpty) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  ScrollbarTheme(
+                    data: ScrollbarThemeData(
+                      thumbColor: WidgetStateProperty.all(AppColors.primary),
+                      thickness: WidgetStateProperty.all(2),
+                      radius: const Radius.circular(20),
+                      trackVisibility: WidgetStateProperty.all(true),
+                      trackColor: WidgetStateProperty.all(
+                        AppColors.primary.withOpacity(0.1),
+                      ),
+                      thumbVisibility: WidgetStateProperty.all(true),
+                      interactive: true,
+                      trackBorderColor: WidgetStateProperty.all(
+                        AppColors.primary.withOpacity(0.1),
+                      ),
+                      crossAxisMargin: 3,
+                      mainAxisMargin: 3,
+                    ),
+                    child: Scrollbar(
                       controller: scrollController,
                       thickness: 5,
-                      child: SingleChildScrollView(
-                        padding: EdgeInsets.only(bottom: 10),
-                        controller: scrollController,
-                        scrollDirection: Axis.horizontal,
-                        child: DataView(
-                          controller: controller,
-                          data: data,
-                          headerData: controller.headerData,
-                          constraints: BoxConstraints(
-                            maxWidth: MediaQuery.of(context).size.width - 48,
-                            maxHeight: 380,
-                          ),
-                        ),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return SingleChildScrollView(
+                            padding: EdgeInsets.only(bottom: 20),
+                            controller: scrollController,
+                            scrollDirection: Axis.horizontal,
+                            child: DataView(
+                              controller: controller,
+                              data: data,
+                              headerData: controller.headerData,
+                              constraints: constraints,
+                            ),
+                          );
+                        },
                       ),
                     ),
-                    if (controller.filteredActivities.length > 10)
-                      PaginationView(controller: controller),
-                  ],
-                );
-              }
-              return const SizedBox.shrink();
-            }),
-          ),
-        ],
-      ),
+                  ),
+                  if (controller.filteredActivities.length > 10)
+                    PaginationView(controller: controller),
+                ],
+              );
+            }
+            return const SizedBox.shrink();
+          }),
+        ),
+      ],
     );
   }
 }
@@ -523,7 +548,11 @@ class PaginationView extends StatelessWidget {
   }
 }
 
-class _ManualEntryForm extends StatelessWidget {
+class ManualEntryForm extends StatelessWidget {
+  final bool canBack;
+
+  ManualEntryForm({super.key, this.canBack = false});
+
   final controller = Get.find<DashboardController>();
 
   @override
@@ -569,6 +598,10 @@ class _ManualEntryForm extends StatelessWidget {
                 labelText: 'Hours',
                 hintText: 'HH',
                 keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(3),
+                ],
               ),
             ),
             const SizedBox(width: 16),
@@ -578,6 +611,10 @@ class _ManualEntryForm extends StatelessWidget {
                 labelText: 'Minutes',
                 hintText: 'MM',
                 keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(2),
+                ],
               ),
             ),
           ],
@@ -594,7 +631,7 @@ class _ManualEntryForm extends StatelessWidget {
         CommonButton(
           text: 'Add Log Entry',
           onPressed: () {
-            controller.addManualEntry(context);
+            controller.addManualEntry(context, canBack);
           },
           isPrimary: true,
           width: double.infinity,
@@ -683,6 +720,18 @@ class DataView extends StatelessWidget {
       (value, element) => value + element + 10,
     );
 
+    double adjustedWidth = 0;
+
+    if (width < constraints.maxWidth) {
+      double diff = constraints.maxWidth - width;
+
+      adjustedWidth = diff / headerData.length;
+
+      headerData.forEach((key, value) {
+        headerData[key] = value + adjustedWidth;
+      });
+    }
+
     return ConstrainedBox(
       constraints: BoxConstraints(
         minWidth: width,
@@ -733,6 +782,7 @@ class DataView extends StatelessWidget {
                                             ).format(rowData[e.key] as DateTime)
                                             : rowData[e.key]?.toString() ?? "-",
                                         textAlign: TextAlign.center,
+                                        style: TextStyle(height: 1.5),
                                       ),
                             ),
                           )
@@ -741,9 +791,9 @@ class DataView extends StatelessWidget {
                               element,
                               SizedBox(
                                 width: 10,
-                                child: VerticalDivider(
-                                  color: Colors.grey.withOpacity(0.25),
-                                ),
+                                // child: VerticalDivider(
+                                //   color: Colors.grey.withOpacity(0.25),
+                                // ),
                               ),
                             ],
                           )

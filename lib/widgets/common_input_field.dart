@@ -1,4 +1,6 @@
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get_connect/http/src/utils/utils.dart';
 import '../utils/app_colors.dart';
 
@@ -13,6 +15,8 @@ class CommonTextField extends StatelessWidget {
   final int maxLines;
   final void Function()? onTap;
   final bool readOnly;
+  final List<TextInputFormatter>? inputFormatters;
+
 
   const CommonTextField({
     super.key,
@@ -26,6 +30,7 @@ class CommonTextField extends StatelessWidget {
     this.maxLines = 1,
     this.onTap,
     this.readOnly = false,
+    this.inputFormatters,
   });
 
   @override
@@ -49,6 +54,7 @@ class CommonTextField extends StatelessWidget {
           readOnly: readOnly,
           maxLines: maxLines,
           controller: controller,
+          inputFormatters: inputFormatters,
           obscureText: obscureText,
           keyboardType: keyboardType,
           validator: validator,
@@ -101,26 +107,73 @@ class CommonDropdownButton<T> extends StatelessWidget {
           ),
           const SizedBox(height: 8),
         ],
-        DropdownButtonFormField<T>(
-          isDense: true,
+        DropdownButtonHideUnderline(
+          child: DropdownButton2<T>(
+            value: value,
+            hint: Text(
+              hintText ?? 'Select',
+              style: const TextStyle(fontSize: 16, color: Colors.black54),
+            ),
+            isExpanded: true,
+            alignment: Alignment.centerLeft,
+            items: items,
+            onChanged: onChanged,
+            menuItemStyleData: MenuItemStyleData(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              selectedMenuItemBuilder: (context, child) {
+                return Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  alignment: Alignment.centerLeft,
+                  child: DefaultTextStyle(
+                    style: const TextStyle(color: Colors.white),
+                    child: child,
+                  ),
+                );
+              },
+            ),
+            buttonStyleData: ButtonStyleData(
+              padding: EdgeInsets.zero,
+              overlayColor: WidgetStateProperty.all(Colors.transparent),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey),
+                color: Colors.white,
+              ),
+            ),
 
-          decoration: InputDecoration(
-            hintText: hintText,
-            border: const OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(12)),
+            dropdownStyleData: DropdownStyleData(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 8,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              elevation: 4,
+              offset: const Offset(0, 4),
+              padding: EdgeInsets.zero,
+              maxHeight: MediaQuery.of(context).size.height * 0.4,
+            ),
+            customButton: IgnorePointer(
+              ignoring: true,
+              child: CommonTextField(
+                hintText: hintText,
+                controller: TextEditingController(
+                  text: value?.toString() ?? "",
+                ),
+                readOnly: true,
+                suffixIcon: Icon(Icons.arrow_drop_down),
+              ),
             ),
           ),
-
-          value: value,
-          hint: Text(hintText ?? 'Select'),
-          isExpanded: false,
-          alignment: Alignment.centerLeft,
-
-          // padding: const EdgeInsets.symmetric(horizontal: 12),
-          items: items,
-          padding: EdgeInsets.zero,
-          onChanged: onChanged,
-          validator: validator,
         ),
       ],
     );

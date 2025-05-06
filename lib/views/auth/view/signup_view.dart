@@ -74,7 +74,10 @@ class _WebSignUpView extends StatelessWidget {
     );
   }
 
-  Widget _buildSignUpForm({required VoidCallback onLogin, required BuildContext context}) {
+  Widget _buildSignUpForm({
+    required VoidCallback onLogin,
+    required BuildContext context,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

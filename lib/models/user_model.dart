@@ -15,14 +15,14 @@ class UserModel {
     required this.position,
   });
 
-  factory UserModel.fromJson(Map<String, dynamic> json) {
+  factory UserModel.fromJson(Map<String, dynamic> json, String id) {
     return UserModel(
-      id: json['id'] as String,
+      id: id,
       firstName: json['firstName'] as String,
       lastName: json['lastName'] as String,
       email: json['email'] as String,
-      degree: json['degree'] as String,
-      position: json['position'] as String,
+      degree: json['degree']?.toLowerCase() as String,
+      position: json['position']?.toLowerCase() as String,
     );
   }
 
@@ -54,4 +54,4 @@ class UserModel {
       position: position ?? this.position,
     );
   }
-} 
+}
