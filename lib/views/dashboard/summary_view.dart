@@ -1,10 +1,19 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:gme_time_tracker/models/user_model.dart';
+import 'package:gme_time_tracker/utils/downloader.dart';
 import 'package:gme_time_tracker/widgets/common_input_field.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart';
+import '../../helpers/pdf_helper.dart';
+import '../../models/activity_model.dart';
 import '../../utils/app_colors.dart';
+import '../../widgets/download_options_dialog.dart';
+import 'controller/dashboard_controller.dart';
 import 'controller/summary_controller.dart';
+import 'package:flutter/services.dart';
 
 class SummaryView extends StatelessWidget {
   final controller = Get.put(SummaryController());
@@ -81,8 +90,94 @@ class SummaryView extends StatelessWidget {
                     );
                   }),
                 ),
-                GestureDetector(
-                  onTap: () => controller.exportReport(),
+                InkWell(
+                  onTap: () {
+                    print("fdf");
+
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return DownloadOptionsDialog(
+                          onExcelSelected: () {
+                            controller.exportReport();
+                          },
+                          onPdfSelected: () async {
+                            String month =
+                                controller.selectedMonth.value.toString();
+                            String year =
+                                controller.selectedYear.value.toString();
+
+                            UserModel? user =
+                                Get.find<DashboardController>().user.value;
+
+                            // Load logo
+                            final ByteData logoData = await rootBundle.load(
+                              'assets/logo.png',
+                            );
+                            final Uint8List logoBytes =
+                                logoData.buffer.asUint8List();
+
+                            // Prepare user details
+                            final Map<String, dynamic> userDetails = {
+                              'Name': user?.firstName ?? '',
+                              'Email': user?.email ?? '',
+                            };
+
+                            // Get activities
+                            List<ActivityModel> activities =
+                                controller.activities;
+
+                            // Calculate total hours and average
+                            // double totalHours = activities.fold(
+                            //     0,
+                            //     (sum, activity) =>
+                            //         sum + (activity.durationMinutes / 60));
+                            // double averageHoursPerDay = activities.isNotEmpty
+                            //     ? totalHours / activities.length
+                            //     : 0;
+
+                            // // Prepare summary data
+                            // final Map<String, dynamic> summaryData = {
+                            //   'Total Hours': totalHours.toStringAsFixed(2),
+                            //   'Month': '$month $year',
+                            //   'Average Hours/Day':
+                            //       averageHoursPerDay.toStringAsFixed(2),
+                            //   'Total Activities': activities.length.toString(),
+                            // };
+
+                            // // Convert activities to entries format
+                            // final List<Map<String, dynamic>> entries =
+                            //     activities
+                            //         .map((activity) => {
+                            //               'Date': DateFormat('MMM dd, yyyy')
+                            //                   .format(activity.date),
+                            //               'Hours':
+                            //                   (activity.durationMinutes / 60)
+                            //                       .toStringAsFixed(2),
+                            //               'Activity Type':
+                            //                   activity.activityType,
+                            //               'Notes': activity.notes ?? '',
+                            //               'Status': activity.status,
+                            //             })
+                            //         .toList();
+
+                            File file =
+                                await PdfGenerator.generateUserActivityPDF(
+                                  fileName: 'GME_Hours_${month}_$year',
+                                  userDetails: userDetails,
+                                  activityList: activities,
+                                  logoBytes: logoBytes,
+                                  copyrightText: '© 2025 GME Time Tracker',
+                                );
+
+                            print(file);
+
+                            await Downloader.downloadFile(file: file);
+                          },
+                        );
+                      },
+                    );
+                  },
                   child: Container(
                     padding: const EdgeInsets.all(13),
                     decoration: BoxDecoration(
@@ -96,7 +191,6 @@ class SummaryView extends StatelessWidget {
             ),
           ],
         ),
-
         const SizedBox(height: 20),
         Obx(() {
           return Text(

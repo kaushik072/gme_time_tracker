@@ -25,6 +25,7 @@ class Downloader {
         throw ("Storage permission denied");
       }
     } catch (e) {
+      print(e);
       ToastHelper.showErrorToast("Download failed: $e");
     }
   }

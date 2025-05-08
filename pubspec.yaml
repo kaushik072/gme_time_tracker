@@ -45,6 +45,7 @@ dependencies:
   syncfusion_flutter_charts: ^29.1.40
   excel: ^4.0.6
   syncfusion_flutter_xlsio: ^29.1.40
+  syncfusion_flutter_pdf: ^29.1.40
   path_provider: ^2.1.5
   universal_html: ^2.2.4
   device_info_plus: ^11.4.0
