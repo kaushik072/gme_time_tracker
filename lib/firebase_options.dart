@@ -48,17 +48,17 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyD5nfrTnQGiqThiIp9q-8K1Yn5WDJ0suq4',
-    appId: '1:907816878388:web:87f87e1e158cfeeaa12561',
+    appId: '1:907816878388:web:a007bff99a12e63ba12561',
     messagingSenderId: '907816878388',
     projectId: 'gme-time-tracker',
     authDomain: 'gme-time-tracker.firebaseapp.com',
     storageBucket: 'gme-time-tracker.firebasestorage.app',
-    measurementId: 'G-39GD3ZN4PS',
+    measurementId: 'G-6BNM5DL747',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAxtNqMBodLehjblnr9rJ7H4adRt8H3RbA',
-    appId: '1:907816878388:android:6be26e8ad17efb9fa12561',
+    appId: '1:907816878388:android:ff72f08ccb84a06aa12561',
     messagingSenderId: '907816878388',
     projectId: 'gme-time-tracker',
     storageBucket: 'gme-time-tracker.firebasestorage.app',
@@ -66,10 +66,11 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCi_yy4lD5iQqHKeTgtWijWtq9xBp_fRz4',
-    appId: '1:907816878388:ios:66fa705982642410a12561',
+    appId: '1:907816878388:ios:0974d51376836200a12561',
     messagingSenderId: '907816878388',
     projectId: 'gme-time-tracker',
     storageBucket: 'gme-time-tracker.firebasestorage.app',
-    iosBundleId: 'gme.timetracker.gmeTimeTracker',
+    iosBundleId: 'com.app.gmeTimeTracker',
   );
+
 }

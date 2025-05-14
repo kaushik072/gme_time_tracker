@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'toast_helper.dart';
@@ -10,7 +11,13 @@ class Downloader {
     try {
       if (await _requestStoragePermission()) {
         // Get the Downloads directory
-        Directory downloadsDir = Directory('/storage/emulated/0/Download');
+        Directory? downloadsDir;
+
+        if (Platform.isAndroid) {
+          downloadsDir = Directory('/storage/emulated/0/Download');
+        } else {
+          downloadsDir = await getApplicationDocumentsDirectory();
+        }
         if (!downloadsDir.existsSync()) {
           downloadsDir.createSync(recursive: true);
         }
@@ -40,7 +47,8 @@ class Downloader {
         status = await Permission.photos.request();
       }
       return status.isGranted;
+    } else {
+      return true;
     }
-    return true;
   }
 }

@@ -211,7 +211,16 @@ class PdfGenerator {
     final List<int> bytes = await document.save();
     document.dispose();
 
-    final Directory? dir = await getDownloadsDirectory();
+
+    final Directory? dir;
+
+    if (Platform.isAndroid) {
+      dir = await getExternalStorageDirectory();
+    } else {
+      dir = await getApplicationDocumentsDirectory();
+    }
+
+
     final File file = File('${dir?.path}/$fileName.pdf');
     return await file.writeAsBytes(bytes);
   }

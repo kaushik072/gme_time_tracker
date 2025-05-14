@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:907816878388:android:6be26e8ad17efb9fa12561",
+        "mobilesdk_app_id": "1:907816878388:android:ff72f08ccb84a06aa12561",
         "android_client_info": {
-          "package_name": "gme.time_tracker.gme_time_tracker"
+          "package_name": "com.app.gmeTimeTracker"
         }
       },
       "oauth_client": [],

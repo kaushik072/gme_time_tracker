@@ -1,7 +1,6 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get_connect/http/src/utils/utils.dart';
 import '../utils/app_colors.dart';
 
 class CommonTextField extends StatelessWidget {
@@ -16,7 +15,6 @@ class CommonTextField extends StatelessWidget {
   final void Function()? onTap;
   final bool readOnly;
   final List<TextInputFormatter>? inputFormatters;
-
 
   const CommonTextField({
     super.key,
