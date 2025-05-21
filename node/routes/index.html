@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Time Tracking Report</title>
+    <style>
+        @page { margin: 40px; }
+        body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 0;
+        }
+
+        .header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 20px 40px;
+          border-bottom: 1.5px solid #e0e7ef;
+          background: #fff;
+        }
+
+        .title { font-size: 2em; font-weight: bold; color: #2a4365; }
+        .subtitle { font-size: 1em; color: #888; }
+
+        .user-details {
+          margin: 40px;
+          padding: 20px;
+          background: #f8fafc;
+          border: 1.5px solid #e0e7ef;
+          border-radius: 12px;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        }
+
+        .section-title {
+          font-size: 1.2em;
+          margin-bottom: 10px;
+          color: #2a4365;
+          font-weight: bold;
+        }
+
+        .activity-table {
+          width: 90%;
+          margin: 0 auto 40px auto;
+          border-collapse: collapse;
+        }
+
+        .activity-table th, .activity-table td {
+          padding: 10px 14px;
+          border: 1px solid #e0e7ef;
+          text-align: left;
+        }
+
+        .activity-table th {
+          background-color: #edf2f7;
+          font-weight: bold;
+        }
+
+        .chart-container {
+          width: 90%;
+          margin: 0 auto 40px auto;
+        }
+
+        .bar-chart {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .bar {
+          display: flex;
+          align-items: center;
+        }
+
+        .bar-label {
+          width: 150px;
+          font-weight: bold;
+          color: #2a4365;
+        }
+
+        .bar-outer {
+          flex: 1;
+          height: 20px;
+          background-color: #e2e8f0;
+          border-radius: 4px;
+          overflow: hidden;
+          margin-left: 10px;
+        }
+
+        .bar-inner {
+          height: 100%;
+          background-color: #3182ce;
+          transition: width 0.3s ease;
+        }
+
+        .bar-value {
+          margin-left: 10px;
+          font-size: 0.9em;
+          color: #4a5568;
+          white-space: nowrap;
+          min-width: 40px;
+        }
+
+        .doughnut-chart-wrapper {
+          display: flex;
+          justify-content: center;
+          margin: 60px auto 40px auto;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .doughnut-chart {
+          width: 200px;
+          height: 200px;
+          border-radius: 50%;
+          background: conic-gradient(
+            #3182ce 0% 30%,
+            #68d391 30% 60%,
+            #ed8936 60% 80%,
+            #a0aec0 80% 100%
+          );
+          position: relative;
+        }
+
+        .doughnut-chart::before {
+          content: '';
+          position: absolute;
+          top: 25%;
+          left: 25%;
+          width: 50%;
+          height: 50%;
+          background: #fff;
+          border-radius: 50%;
+          z-index: 1;
+        }
+
+        .legend {
+          margin-top: 20px;
+          display: flex;
+          gap: 20px;
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+
+        .legend-item {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.9em;
+        }
+
+        .legend-color {
+          width: 12px;
+          height: 12px;
+          border-radius: 2px;
+          display: inline-block;
+        }
+
+        .color-email { background-color: #3182ce; }
+        .color-meetings { background-color: #68d391; }
+        .color-development { background-color: #ed8936; }
+        .color-break { background-color: #a0aec0; }
+
+        .footer {
+          padding: 20px 40px;
+          text-align: center;
+          color: #888;
+          font-size: 0.9em;
+          border-top: 1.5px solid #e0e7ef;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="title">Time Tracking Report</div>
+    <div class="subtitle">Generated on: <span id="generatedDate"></span></div>
+    <button id="downloadPdfBtn" style="padding: 10px 18px; background: #3182ce; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">
+        Download PDF
+    </button>
+</div>
+
+<div class="user-details">
+    <div class="section-title">User Information</div>
+    <p><strong>Name:</strong> <span id="userName">John Doe</span></p>
+    <p><strong>Email:</strong> <span id="userEmail">john.doe@example.com</span></p>
+    <p><strong>Report Date:</strong> <span id="reportDate"></span></p>
+</div>
+
+<div class="chart-container">
+    <div class="section-title">Activity Time Chart (Minutes)</div>
+    <div class="bar-chart" id="barChart">
+        <!-- Bar chart will be dynamically populated -->
+    </div>
+</div>
+
+<div class="doughnut-chart-wrapper">
+    <div class="section-title">Activity Distribution (Doughnut)</div>
+    <div class="doughnut-chart" id="doughnutChart"></div>
+    <div class="legend" id="chartLegend">
+        <!-- Legend will be dynamically populated -->
+    </div>
+</div>
+
+<table class="activity-table">
+    <thead>
+    <tr>
+        <th>Date</th>
+        <th>Activity Type</th>
+        <th>Duration (min)</th>
+        <th>Notes</th>
+    </tr>
+    </thead>
+    <tbody id="activityTableBody">
+        <!-- Table will be dynamically populated -->
+    </tbody>
+</table>
+
+<div class="footer">
+    HUM Mobility (OPC) Private Limited &copy; 2025 | support@myhum.in
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+    // Sample activities data (in real implementation, this would come from your backend)
+    const activities = [
+    {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Assessment & Evaluation",
+    date: "2025-05-04T00:00:00.000",
+    durationMinutes: 60,
+    notes: "ryuh",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-08T10:47:12.015"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Didactic Teaching",
+    date: "2025-05-08T00:00:00.000",
+    durationMinutes: 60,
+    notes: "",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-08T10:46:39.112"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Assessment & Evaluation",
+    date: "2025-05-02T00:00:00.000",
+    durationMinutes: 60,
+    notes: "520",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-06T13:03:32.748"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Scholarly Activity",
+    date: "2025-05-03T00:00:00.000",
+    durationMinutes: 120,
+    notes: "",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-06T13:03:22.973"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Program Administration",
+    date: "2025-05-05T00:00:00.000",
+    durationMinutes: 60,
+    notes: "",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-06T13:03:16.087"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Mentorship & Advising",
+    date: "2025-05-06T00:00:00.000",
+    durationMinutes: 240,
+    notes: "s",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-06T13:03:09.332"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Assessment & Evaluation",
+    date: "2025-05-06T00:00:00.000",
+    durationMinutes: 60,
+    notes: "fgbr",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-06T11:04:27.345"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Assessment & Evaluation",
+    date: "2025-05-01T00:00:00.000",
+    durationMinutes: 60,
+    notes: "rgf",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-05T19:55:01.043"
+  },
+
+
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Didactic Teaching",
+    date: "2025-05-02T00:00:00.000",
+    durationMinutes: 120,
+    notes: "",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-05T19:53:42.688"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Mentorship & Advising",
+    date: "2025-05-03T00:00:00.000",
+    durationMinutes: 60,
+    notes: "",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-05T19:53:01.794"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Clinical Teaching",
+    date: "2025-05-05T00:00:00.000",
+    durationMinutes: 120,
+    notes: "edfr",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-05T19:51:07.083"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Research & Publication",
+    date: "2025-05-07T00:00:00.000",
+    durationMinutes: 180,
+    notes: "Literature review for upcoming paper",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-07T09:15:22.123"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Clinical Teaching",
+    date: "2025-05-08T00:00:00.000",
+    durationMinutes: 90,
+    notes: "Patient case discussion",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-08T14:30:45.678"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Program Administration",
+    date: "2025-05-09T00:00:00.000",
+    durationMinutes: 120,
+    notes: "Curriculum planning meeting",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-09T10:20:33.456"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Mentorship & Advising",
+    date: "2025-05-10T00:00:00.000",
+    durationMinutes: 60,
+    notes: "Student progress review",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-10T15:45:12.789"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Didactic Teaching",
+    date: "2025-05-11T00:00:00.000",
+    durationMinutes: 120,
+    notes: "Advanced clinical techniques lecture",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-11T09:30:45.123"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Assessment & Evaluation",
+    date: "2025-05-12T00:00:00.000",
+    durationMinutes: 90,
+    notes: "Final exam preparation",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-12T13:15:22.456"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Scholarly Activity",
+    date: "2025-05-13T00:00:00.000",
+    durationMinutes: 240,
+    notes: "Grant proposal writing",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-13T10:45:33.789"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Clinical Teaching",
+    date: "2025-05-14T00:00:00.000",
+    durationMinutes: 180,
+    notes: "Surgical procedure demonstration",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-14T08:30:12.123"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Program Administration",
+    date: "2025-05-15T00:00:00.000",
+    durationMinutes: 120,
+    notes: "Department budget review",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-15T14:20:45.456"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Mentorship & Advising",
+    date: "2025-05-16T00:00:00.000",
+    durationMinutes: 90,
+    notes: "Career planning session",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-16T11:15:33.789"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Didactic Teaching",
+    date: "2025-05-17T00:00:00.000",
+    durationMinutes: 120,
+    notes: "Medical ethics seminar",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-17T09:45:12.123"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Assessment & Evaluation",
+    date: "2025-05-18T00:00:00.000",
+    durationMinutes: 180,
+    notes: "Student performance evaluation",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-18T13:30:45.456"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Scholarly Activity",
+    date: "2025-05-19T00:00:00.000",
+    durationMinutes: 240,
+    notes: "Research data analysis",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-19T10:15:33.789"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Clinical Teaching",
+    date: "2025-05-20T00:00:00.000",
+    durationMinutes: 150,
+    notes: "Emergency medicine training",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-20T08:45:12.123"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Program Administration",
+    date: "2025-05-21T00:00:00.000",
+    durationMinutes: 120,
+    notes: "Faculty meeting",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-21T14:30:45.456"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Mentorship & Advising",
+    date: "2025-05-22T00:00:00.000",
+    durationMinutes: 90,
+    notes: "Research project guidance",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-22T11:15:33.789"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Didactic Teaching",
+    date: "2025-05-23T00:00:00.000",
+    durationMinutes: 120,
+    notes: "Medical imaging workshop",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-23T09:45:12.123"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Assessment & Evaluation",
+    date: "2025-05-24T00:00:00.000",
+    durationMinutes: 180,
+    notes: "Clinical skills assessment",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-24T13:30:45.456"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Scholarly Activity",
+    date: "2025-05-25T00:00:00.000",
+    durationMinutes: 240,
+    notes: "Manuscript preparation",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-25T10:15:33.789"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Clinical Teaching",
+    date: "2025-05-26T00:00:00.000",
+    durationMinutes: 150,
+    notes: "Pediatric care training",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-26T08:45:12.123"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Program Administration",
+    date: "2025-05-27T00:00:00.000",
+    durationMinutes: 120,
+    notes: "Accreditation preparation",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-27T14:30:45.456"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Mentorship & Advising",
+    date: "2025-05-28T00:00:00.000",
+    durationMinutes: 90,
+    notes: "Residency application review",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-28T11:15:33.789"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Didactic Teaching",
+    date: "2025-05-29T00:00:00.000",
+    durationMinutes: 120,
+    notes: "Medical ethics case studies",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-29T09:45:12.123"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Assessment & Evaluation",
+    date: "2025-05-30T00:00:00.000",
+    durationMinutes: 180,
+    notes: "Clinical rotation evaluation",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-30T13:30:45.456"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Scholarly Activity",
+    date: "2025-05-31T00:00:00.000",
+    durationMinutes: 240,
+    notes: "Research methodology workshop",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-31T10:15:33.789"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Clinical Teaching",
+    date: "2025-06-01T00:00:00.000",
+    durationMinutes: 150,
+    notes: "Surgical skills lab",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-01T08:45:12.123"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Program Administration",
+    date: "2025-06-02T00:00:00.000",
+    durationMinutes: 120,
+    notes: "Strategic planning session",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-02T14:30:45.456"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Mentorship & Advising",
+    date: "2025-06-03T00:00:00.000",
+    durationMinutes: 90,
+    notes: "Research proposal review",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-03T11:15:33.789"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Didactic Teaching",
+    date: "2025-06-04T00:00:00.000",
+    durationMinutes: 120,
+    notes: "Evidence-based medicine lecture",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-04T09:45:12.123"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Assessment & Evaluation",
+    date: "2025-06-05T00:00:00.000",
+    durationMinutes: 180,
+    notes: "Clinical competency assessment",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-05T13:30:45.456"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Scholarly Activity",
+    date: "2025-06-06T00:00:00.000",
+    durationMinutes: 240,
+    notes: "Conference presentation preparation",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-06T10:15:33.789"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Clinical Teaching",
+    date: "2025-06-07T00:00:00.000",
+    durationMinutes: 150,
+    notes: "Critical care training",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-07T08:45:12.123"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Program Administration",
+    date: "2025-06-08T00:00:00.000",
+    durationMinutes: 120,
+    notes: "Quality improvement meeting",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-08T14:30:45.456"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Mentorship & Advising",
+    date: "2025-06-09T00:00:00.000",
+    durationMinutes: 90,
+    notes: "Professional development planning",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-09T11:15:33.789"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Didactic Teaching",
+    date: "2025-06-10T00:00:00.000",
+    durationMinutes: 120,
+    notes: "Medical simulation training",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-10T09:45:12.123"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Assessment & Evaluation",
+    date: "2025-06-11T00:00:00.000",
+    durationMinutes: 180,
+    notes: "Clinical reasoning assessment",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-11T13:30:45.456"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Scholarly Activity",
+    date: "2025-06-12T00:00:00.000",
+    durationMinutes: 240,
+    notes: "Systematic review writing",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-12T10:15:33.789"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Clinical Teaching",
+    date: "2025-06-13T00:00:00.000",
+    durationMinutes: 150,
+    notes: "Geriatric care training",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-13T08:45:12.123"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Program Administration",
+    date: "2025-06-14T00:00:00.000",
+    durationMinutes: 120,
+    notes: "Faculty development planning",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-14T14:30:45.456"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Mentorship & Advising",
+    date: "2025-06-15T00:00:00.000",
+    durationMinutes: 90,
+    notes: "Research methodology guidance",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-15T11:15:33.789"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Didactic Teaching",
+    date: "2025-06-16T00:00:00.000",
+    durationMinutes: 120,
+    notes: "Clinical pharmacology lecture",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-16T09:45:12.123"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Assessment & Evaluation",
+    date: "2025-06-17T00:00:00.000",
+    durationMinutes: 180,
+    notes: "Clinical skills OSCE",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-17T13:30:45.456"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Scholarly Activity",
+    date: "2025-06-18T00:00:00.000",
+    durationMinutes: 240,
+    notes: "Research protocol development",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-18T10:15:33.789"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Clinical Teaching",
+    date: "2025-06-19T00:00:00.000",
+    durationMinutes: 150,
+    notes: "Obstetrics training",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-19T08:45:12.123"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Program Administration",
+    date: "2025-06-20T00:00:00.000",
+    durationMinutes: 120,
+    notes: "Curriculum review meeting",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-20T14:30:45.456"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Mentorship & Advising",
+    date: "2025-06-21T00:00:00.000",
+    durationMinutes: 90,
+    notes: "Clinical rotation planning",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-21T11:15:33.789"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Didactic Teaching",
+    date: "2025-06-22T00:00:00.000",
+    durationMinutes: 120,
+    notes: "Medical ethics workshop",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-22T09:45:12.123"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Assessment & Evaluation",
+    date: "2025-06-23T00:00:00.000",
+    durationMinutes: 180,
+    notes: "Clinical reasoning exam",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-23T13:30:45.456"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Scholarly Activity",
+    date: "2025-06-24T00:00:00.000",
+    durationMinutes: 240,
+    notes: "Research data collection",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-24T10:15:33.789"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Clinical Teaching",
+    date: "2025-06-25T00:00:00.000",
+    durationMinutes: 150,
+    notes: "Cardiology training",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-25T08:45:12.123"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Program Administration",
+    date: "2025-06-26T00:00:00.000",
+    durationMinutes: 120,
+    notes: "Faculty recruitment meeting",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-26T14:30:45.456"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Mentorship & Advising",
+    date: "2025-06-27T00:00:00.000",
+    durationMinutes: 90,
+    notes: "Research ethics guidance",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-27T11:15:33.789"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Didactic Teaching",
+    date: "2025-06-28T00:00:00.000",
+    durationMinutes: 120,
+    notes: "Medical imaging interpretation",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-28T09:45:12.123"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Assessment & Evaluation",
+    date: "2025-06-29T00:00:00.000",
+    durationMinutes: 180,
+    notes: "Clinical skills assessment",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-29T13:30:45.456"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Scholarly Activity",
+    date: "2025-06-30T00:00:00.000",
+    durationMinutes: 240,
+    notes: "Research manuscript review",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-06-30T10:15:33.789"
+  }
+    ];
+
+    // Function to format date
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString();
+    }
+
+    // Function to calculate total duration by activity type
+    function calculateActivityTotals(activities) {
+        const totals = {};
+        activities.forEach(activity => {
+            if (!totals[activity.activityType]) {
+                totals[activity.activityType] = 0;
+            }
+            totals[activity.activityType] += activity.durationMinutes;
+        });
+        return totals;
+    }
+
+    // Function to generate colors for activities
+    function getActivityColor(activityType) {
+        const colors = {
+            'Assessment & Evaluation': '#3182ce',
+            'Didactic Teaching': '#68d391',
+            'Scholarly Activity': '#ed8936',
+            'Program Administration': '#a0aec0',
+            'Mentorship & Advising': '#805ad5',
+            'Clinical Teaching': '#e53e3e'
+        };
+        return colors[activityType] || '#718096';
+    }
+
+    // Function to populate bar chart
+    function populateBarChart(activities) {
+        const totals = calculateActivityTotals(activities);
+        const barChart = document.getElementById('barChart');
+        barChart.innerHTML = '';
+
+        Object.entries(totals).forEach(([type, duration]) => {
+            const maxDuration = Math.max(...Object.values(totals));
+            const percentage = (duration / maxDuration) * 100;
+
+            const barHtml = `
+                <div class="bar">
+                    <div class="bar-label">${type}</div>
+                    <div class="bar-outer">
+                        <div class="bar-inner" style="width: ${percentage}%; background-color: ${getActivityColor(type)};"></div>
+                    </div>
+                    <div class="bar-value">${duration} min</div>
+                </div>
+            `;
+            barChart.innerHTML += barHtml;
+        });
+    }
+
+    // Function to populate doughnut chart
+    function populateDoughnutChart(activities) {
+        const totals = calculateActivityTotals(activities);
+        const doughnutChart = document.getElementById('doughnutChart');
+        const legend = document.getElementById('chartLegend');
+        
+        // Generate conic gradient
+        let gradientString = '';
+        let currentPercentage = 0;
+        const totalDuration = Object.values(totals).reduce((a, b) => a + b, 0);
+
+        Object.entries(totals).forEach(([type, duration]) => {
+            const percentage = (duration / totalDuration) * 100;
+            const startPercentage = currentPercentage;
+            currentPercentage += percentage;
+            
+            gradientString += `${getActivityColor(type)} ${startPercentage}% ${currentPercentage}%`;
+            if (index < array.length - 1) gradientString += ', ';
+
+            // Add legend item
+            const legendItem = document.createElement('div');
+            legendItem.className = 'legend-item';
+            legendItem.innerHTML = `
+                <span class="legend-color" style="background-color: ${getActivityColor(type)}"></span>
+                ${type} (${duration}m)
+            `;
+            legend.appendChild(legendItem);
+        });
+
+        doughnutChart.style.background = `conic-gradient(${gradientString})`;
+        pdf.setFillColor('#fff');
+        pdf.circle(centerX, centerY, innerRadius, 'F');
+    }
+
+    // Function to populate activity table
+    function populateActivityTable(activities) {
+        const tableBody = document.getElementById('activityTableBody');
+        tableBody.innerHTML = '';
+
+        activities.forEach(activity => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${formatDate(activity.date)}</td>
+                <td>${activity.activityType}</td>
+                <td>${activity.durationMinutes}</td>
+                <td>${activity.notes || '-'}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('generatedDate').innerText = new Date().toLocaleString();
+        document.getElementById('reportDate').innerText = new Date().toLocaleDateString();
+        
+        populateBarChart(activities);
+        populateDoughnutChart(activities);
+        populateActivityTable(activities);
+    });
+
+    document.getElementById('downloadPdfBtn').addEventListener('click', function () {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'pt', 'a4');
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 40;
+        const headerHeight = 60;
+        const footerHeight = 40;
+        const contentTop = margin + headerHeight + 10;
+        const contentBottom = pageHeight - margin - footerHeight - 10;
+        const font = 'helvetica';
+
+        // --- HEADER FUNCTION ---
+        function drawHeader(pdf, y = margin) {
+            // Logo placeholder (left)
+            pdf.setFillColor('#3182ce');
+            pdf.circle(margin + 20, y + 20, 18, 'F');
+            pdf.setFont(font, 'bold');
+            pdf.setFontSize(22);
+            pdf.setTextColor('#2a4365');
+            pdf.text('Time Tracking Report', margin + 50, y + 28);
+            // App time (right)
+            pdf.setFont(font, 'normal');
+            pdf.setFontSize(12);
+            pdf.setTextColor('#888');
+            pdf.text('Generated: ' + new Date().toLocaleString(), pageWidth - margin - 180, y + 28);
+            // Horizontal line
+            pdf.setDrawColor(220, 220, 220);
+            pdf.setLineWidth(1);
+            pdf.line(margin, y + headerHeight, pageWidth - margin, y + headerHeight);
+        }
+
+        // --- FOOTER FUNCTION ---
+        function drawFooter(pdf) {
+            // Horizontal line
+            pdf.setDrawColor(220, 220, 220);
+            pdf.setLineWidth(1);
+            pdf.line(margin, pageHeight - margin - footerHeight, pageWidth - margin, pageHeight - margin - footerHeight);
+            pdf.setFont(font, 'normal');
+            pdf.setFontSize(10);
+            pdf.setTextColor('#888');
+            pdf.text('HUM Mobility (OPC) Private Limited © 2025 | support@myhum.in', margin, pageHeight - margin - 15);
+        }
+
+        // --- PAGE 1: Header, Details, Doughnut Chart, Legend, Footer ---
+        drawHeader(pdf);
+
+        // User Details Box
+        let y = contentTop;
+        pdf.setFillColor(248, 250, 252); // subtle blue-gray
+        pdf.roundedRect(margin, y, pageWidth - margin * 2, 70, 10, 10, 'F');
+        pdf.setDrawColor(224, 231, 239);
+        pdf.roundedRect(margin, y, pageWidth - margin * 2, 70, 10, 10);
+        pdf.setFont(font, 'bold');
+        pdf.setFontSize(14);
+        pdf.setTextColor('#2a4365');
+        pdf.text('User Information', margin + 16, y + 24);
+        pdf.setFont(font, 'normal');
+        pdf.setFontSize(12);
+        pdf.setTextColor('#000');
+        pdf.text('Name: John Doe', margin + 16, y + 44);
+        pdf.text('Email: john.doe@example.com', margin + 16, y + 60);
+        pdf.text('Report Date: ' + new Date().toLocaleDateString(), margin + 220, y + 44);
+        y += 90;
+
+        // --- Doughnut Chart (drawn, not image) ---
+        function calculateActivityTotals(activities) {
+            const totals = {};
+            activities.forEach(activity => {
+                if (!totals[activity.activityType]) totals[activity.activityType] = 0;
+                totals[activity.activityType] += activity.durationMinutes;
+            });
+            return totals;
+        }
+        function getActivityColor(activityType) {
+            const colors = {
+                'Assessment & Evaluation': '#3182ce',
+                'Didactic Teaching': '#68d391',
+                'Scholarly Activity': '#ed8936',
+                'Program Administration': '#a0aec0',
+                'Mentorship & Advising': '#805ad5',
+                'Clinical Teaching': '#e53e3e',
+                'Research & Publication': '#4a5568'
+            };
+            return colors[activityType] || '#718096';
+        }
+        const totals = calculateActivityTotals(activities);
+        const totalDuration = Object.values(totals).reduce((a, b) => a + b, 0);
+
+        // Draw doughnut chart (left)
+        const centerX = margin + 100, centerY = y + 90, radius = 70, innerRadius = 35;
+        let startAngle = 0;
+        Object.entries(totals).forEach(([type, duration]) => {
+            const angle = (duration / totalDuration) * 2 * Math.PI;
+            drawPieSlice(pdf, centerX, centerY, radius, startAngle, startAngle + angle, getActivityColor(type));
+            startAngle += angle;
+        });
+        pdf.setFillColor('#fff');
+        pdf.circle(centerX, centerY, innerRadius, 'F');
+
+        // Draw legend (right, with border and shadow)
+        let legendY = y + 30;
+        let legendX = centerX + radius + 60;
+        const legendW = 260, legendH = Object.keys(totals).length * 28 + 20;
+        pdf.setFillColor(255,255,255);
+        pdf.setDrawColor(200,200,200);
+        pdf.setLineWidth(0.8);
+        pdf.roundedRect(legendX-10, legendY-18, legendW, legendH, 8, 8, 'FD');
+        pdf.setDrawColor(180,180,180);
+        pdf.setLineWidth(2);
+        pdf.line(legendX-10, legendY-18, legendX+legendW-10, legendY-18); // subtle shadow effect
+        pdf.setFont(font, 'normal');
+        pdf.setFontSize(12);
+        let legendRowY = legendY;
+        Object.entries(totals).forEach(([type, duration]) => {
+            pdf.setFillColor(getActivityColor(type));
+            pdf.rect(legendX, legendRowY, 18, 18, 'F');
+            pdf.setTextColor('#2a4365');
+            pdf.text(`${type} (${duration}m)`, legendX + 28, legendRowY + 13);
+            legendRowY += 28;
+        });
+
+        drawFooter(pdf);
+
+        // --- TABLE PAGES: 10 entries per page ---
+        const tableHeaders = ['Date', 'Activity Type', 'Duration (min)', 'Notes'];
+        const tableColWidths = [80, 160, 90, 180];
+        let tableRows = activities.map(a => [
+            (new Date(a.date)).toLocaleDateString(),
+            a.activityType,
+            String(a.durationMinutes),
+            a.notes || '-'
+        ]);
+        for (let i = 0; i < tableRows.length; i += 10) {
+            pdf.addPage();
+            drawHeader(pdf);
+            pdf.setFont(font, 'bold');
+            pdf.setFontSize(14);
+            pdf.setTextColor('#2a4365');
+            pdf.text('Activity Log', margin, contentTop);
+            // Table headers with background
+            let tableY = contentTop + 20;
+            pdf.setFillColor(237, 242, 247);
+            pdf.rect(margin, tableY - 12, pageWidth - margin * 2, 22, 'F');
+            pdf.setFont(font, 'bold');
+            pdf.setFontSize(11);
+            pdf.setTextColor('#2a4365');
+            let x = margin;
+            tableHeaders.forEach((header, idx) => {
+                pdf.text(header, x + 4, tableY);
+                x += tableColWidths[idx];
+            });
+            tableY += 8;
+            pdf.setDrawColor(200, 200, 200);
+            pdf.setLineWidth(0.5);
+            pdf.line(margin, tableY, pageWidth - margin, tableY);
+            tableY += 10;
+            // Table rows with alternate shading
+            pdf.setFont(font, 'normal');
+            pdf.setFontSize(11);
+            for (let j = i; j < Math.min(i + 10, tableRows.length); j++) {
+                let x = margin;
+                if (j % 2 === 0) {
+                    pdf.setFillColor(248, 250, 252);
+                    pdf.rect(margin, tableY - 10, pageWidth - margin * 2, 18, 'F');
+                }
+                tableRows[j].forEach((cell, idx) => {
+                    pdf.setTextColor('#222');
+                    pdf.text(cell, x + 4, tableY);
+                    x += tableColWidths[idx];
+                });
+                // Grid lines
+                pdf.setDrawColor(230,230,230);
+                pdf.line(margin, tableY + 4, pageWidth - margin, tableY + 4);
+                tableY += 18;
+            }
+            drawFooter(pdf);
+        }
+
+        // --- LAST PAGE: Bar Chart ---
+        pdf.addPage();
+        drawHeader(pdf);
+        pdf.setFont(font, 'bold');
+        pdf.setFontSize(14);
+        pdf.setTextColor('#2a4365');
+        pdf.text('Activity Time Chart (Minutes)', margin, contentTop);
+        // Bar chart area with border and shadow
+        const barAreaY = contentTop + 20;
+        const barAreaH = Object.keys(totals).length * 36 + 40;
+        pdf.setFillColor(255,255,255);
+        pdf.setDrawColor(200,200,200);
+        pdf.setLineWidth(1);
+        pdf.roundedRect(margin, barAreaY, pageWidth - margin * 2, barAreaH, 12, 12, 'FD');
+        pdf.setDrawColor(180,180,180);
+        pdf.setLineWidth(2);
+        pdf.line(margin, barAreaY, pageWidth - margin, barAreaY); // subtle shadow effect
+        // Draw bars
+        const barStartY = barAreaY + 30;
+        const barHeight = 22;
+        const barGap = 14;
+        const maxBarWidth = pageWidth - margin * 2 - 220;
+        const maxDuration = Math.max(...Object.values(totals));
+        let barY = barStartY;
+        pdf.setFont(font, 'normal');
+        pdf.setFontSize(12);
+        Object.entries(totals).forEach(([type, duration]) => {
+            const barWidth = (duration / maxDuration) * maxBarWidth;
+            pdf.setFillColor(getActivityColor(type));
+            pdf.rect(margin + 170, barY - barHeight + 8, barWidth, barHeight, 'F');
+            pdf.setDrawColor(220,220,220);
+            pdf.rect(margin + 170, barY - barHeight + 8, maxBarWidth, barHeight);
+            pdf.setTextColor('#2a4365');
+            pdf.text(type, margin + 10, barY + 4);
+            pdf.setTextColor('#222');
+            pdf.text(duration + ' min', margin + 180 + barWidth, barY + 4);
+            barY += barHeight + barGap;
+        });
+        // Axis line
+        pdf.setDrawColor(180,180,180);
+        pdf.setLineWidth(1);
+        pdf.line(margin + 170, barStartY - barHeight + 8, margin + 170, barY - barGap);
+        drawFooter(pdf);
+
+        // --- Save PDF ---
+        pdf.save('Time_Tracking_Report.pdf');
+    });
+
+    function drawPieSlice(pdf, cx, cy, r, start, end, color) {
+        const startDeg = (start * 180) / Math.PI;
+        const endDeg = (end * 180) / Math.PI;
+        pdf.setFillColor(color);
+        pdf.moveTo(cx, cy);
+        pdf.arc(cx, cy, r, r, startDeg, endDeg, false);
+        pdf.lineTo(cx, cy);
+        pdf.fill();
+    }
+</script>
+</body>
+</html>

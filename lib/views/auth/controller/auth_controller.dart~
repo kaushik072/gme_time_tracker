@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:gme_time_tracker/repositories/auth_repository.dart';
 import 'package:gme_time_tracker/utils/toast_helper.dart';
 import 'package:go_router/go_router.dart';
+import 'package:gme_time_tracker/repositories/auth_repository.dart';
 
 import '../../../routes/app_routes.dart';
 
@@ -72,14 +72,8 @@ class AuthController extends GetxController {
           firstName: firstNameController.text.trim(),
           lastName: lastNameController.text.trim(),
           email: emailController.text.trim(),
-          degree:
-              isOtherDegree.isTrue
-                  ? otherDegreeController.text.trim()
-                  : selectedDegree.value,
-          position:
-              isOtherPosition.isTrue
-                  ? otherPositionController.text.trim()
-                  : selectedPosition.value,
+          degree: selectedDegree.value,
+          position: selectedPosition.value,
         );
 
         navigationToDashboard(context);

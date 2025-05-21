@@ -1,0 +1,271 @@
+// activities.js
+
+const activities = [
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Assessment & Evaluation",
+    date: "2025-05-04T00:00:00.000",
+    durationMinutes: 60,
+    notes: "ryuh",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-08T10:47:12.015"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Didactic Teaching",
+    date: "2025-05-08T00:00:00.000",
+    durationMinutes: 60,
+    notes: "",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-08T10:46:39.112"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Assessment & Evaluation",
+    date: "2025-05-02T00:00:00.000",
+    durationMinutes: 60,
+    notes: "520",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-06T13:03:32.748"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Scholarly Activity",
+    date: "2025-05-03T00:00:00.000",
+    durationMinutes: 120,
+    notes: "",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-06T13:03:22.973"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Program Administration",
+    date: "2025-05-05T00:00:00.000",
+    durationMinutes: 60,
+    notes: "",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-06T13:03:16.087"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Mentorship & Advising",
+    date: "2025-05-06T00:00:00.000",
+    durationMinutes: 240,
+    notes: "s",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-06T13:03:09.332"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Assessment & Evaluation",
+    date: "2025-05-06T00:00:00.000",
+    durationMinutes: 60,
+    notes: "fgbr",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-06T11:04:27.345"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Assessment & Evaluation",
+    date: "2025-05-01T00:00:00.000",
+    durationMinutes: 60,
+    notes: "rgf",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-05T19:55:01.043"
+  },
+
+
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Didactic Teaching",
+    date: "2025-05-02T00:00:00.000",
+    durationMinutes: 120,
+    notes: "",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-05T19:53:42.688"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Mentorship & Advising",
+    date: "2025-05-03T00:00:00.000",
+    durationMinutes: 60,
+    notes: "",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-05T19:53:01.794"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Clinical Teaching",
+    date: "2025-05-05T00:00:00.000",
+    durationMinutes: 120,
+    notes: "edfr",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-05T19:51:07.083"
+  },{
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Assessment & Evaluation",
+    date: "2025-05-04T00:00:00.000",
+    durationMinutes: 60,
+    notes: "ryuh",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-08T10:47:12.015"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Didactic Teaching",
+    date: "2025-05-08T00:00:00.000",
+    durationMinutes: 60,
+    notes: "",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-08T10:46:39.112"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Assessment & Evaluation",
+    date: "2025-05-02T00:00:00.000",
+    durationMinutes: 60,
+    notes: "520",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-06T13:03:32.748"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Scholarly Activity",
+    date: "2025-05-03T00:00:00.000",
+    durationMinutes: 120,
+    notes: "",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-06T13:03:22.973"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Program Administration",
+    date: "2025-05-05T00:00:00.000",
+    durationMinutes: 60,
+    notes: "",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-06T13:03:16.087"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Mentorship & Advising",
+    date: "2025-05-06T00:00:00.000",
+    durationMinutes: 240,
+    notes: "s",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-06T13:03:09.332"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Assessment & Evaluation",
+    date: "2025-05-06T00:00:00.000",
+    durationMinutes: 60,
+    notes: "fgbr",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-06T11:04:27.345"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Assessment & Evaluation",
+    date: "2025-05-01T00:00:00.000",
+    durationMinutes: 60,
+    notes: "rgf",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-05T19:55:01.043"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Didactic Teaching",
+    date: "2025-05-02T00:00:00.000",
+    durationMinutes: 120,
+    notes: "",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-05T19:53:42.688"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Mentorship & Advising",
+    date: "2025-05-03T00:00:00.000",
+    durationMinutes: 60,
+    notes: "",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-05T19:53:01.794"
+  },
+  {
+    userId: "l2UvXeb4qfVDvHLlh2ZOyTaAjJC3",
+    activityType: "Clinical Teaching",
+    date: "2025-05-05T00:00:00.000",
+    durationMinutes: 120,
+    notes: "edfr",
+    isManual: true,
+    status: "completed",
+    startTime: null,
+    endTime: null,
+    createdAt: "2025-05-05T19:51:07.083"
+  }
+];
+
+module.exports = activities;

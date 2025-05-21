@@ -28,3 +28,5 @@ doc/api/
 
 # FVM Version Cache
 .fvm/
+/node/node_modules
+/.idea

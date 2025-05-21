@@ -13,7 +13,6 @@ import 'package:widgets_to_image/widgets_to_image.dart';
 import '../../helpers/pdf_helper.dart';
 import '../../models/activity_model.dart';
 import '../../utils/app_colors.dart';
-import '../../utils/downloader.dart';
 import '../../widgets/download_options_dialog.dart';
 import 'controller/dashboard_controller.dart';
 import 'controller/summary_controller.dart';
@@ -134,7 +133,7 @@ class SummaryView extends StatelessWidget {
                               print(activity.toJson());
                             }
 
-                            // return;
+                            return;
 
                             // final chartBytes =
                             //     await controller.controller.capture();
@@ -393,19 +392,18 @@ class SummaryView extends StatelessWidget {
                             //       context: context,
                             //     );
 
-                            final file =
-                                await PdfGenerator.generateUserActivityPDF(
-                                  fileName: 'GME_Hours_${month}_$year',
-                                  userDetails: userDetails,
-                                  activityList: activities,
-                                  logoBytes: logoBytes,
-                                  copyrightText: '© 2025 GME Time Tracker',
-                                  // chartBytes: chartBytes,
-                                );
+                            await PdfGenerator.generateUserActivityPDF(
+                              fileName: 'GME_Hours_${month}_$year',
+                              userDetails: userDetails,
+                              activityList: activities,
+                              logoBytes: logoBytes,
+                              copyrightText: '© 2025 GME Time Tracker',
+                              chartBytes: chartBytes,
+                            );
 
                             // print(file);
 
-                            await Downloader.downloadFile(file: file);
+                            // await Downloader.downloadFile(file: file);
                           },
                         );
                       },

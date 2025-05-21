@@ -330,7 +330,6 @@ class _MobileSignUpView extends StatelessWidget {
             hintText: 'Select Degree',
             items: ConstantsData.instance.getDegreeItems(),
             onChanged: (value) {
-              controller.otherDegreeController.clear();
               controller.selectedDegree.value = value ?? '';
               controller.isOtherDegree.value =
                   (value == "others") ? true : false;
@@ -358,7 +357,6 @@ class _MobileSignUpView extends StatelessWidget {
             hintText: 'Select Position',
             items: ConstantsData.instance.getPositionItems(),
             onChanged: (value) {
-              controller.otherPositionController.clear();
               controller.selectedPosition.value = value ?? '';
               controller.isOtherPosition.value =
                   (value == "others") ? true : false;

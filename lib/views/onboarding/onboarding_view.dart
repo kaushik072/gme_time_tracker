@@ -64,7 +64,8 @@ class _WebHomeView extends StatelessWidget {
             const SizedBox(height: 60),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 80),
-              child: IntrinsicHeight(
+              child: SizedBox(
+                height: 220,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

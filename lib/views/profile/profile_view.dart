@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../widgets/common_button.dart';
 import '../../widgets/common_input_field.dart';
 import 'controller/profile_controller.dart';
@@ -62,9 +63,21 @@ class ProfileView extends StatelessWidget {
                         items: controller.degreeItems,
                         onChanged: (value) {
                           controller.degree.value = value ?? '';
+                          print(
+                            "controller.degree.value: ${controller.degree.value}",
+                          );
+                          print("value: $value");
                         },
                       );
                     }),
+                    Obx(
+                      () => Visibility(
+                        visible: controller.degree.value == "others",
+                        child: CommonTextField(
+                          controller: controller.otherDegreeController,
+                        ).paddingOnly(top: 5),
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     Obx(() {
                       return CommonDropdownButton<String?>(
@@ -77,6 +90,14 @@ class ProfileView extends StatelessWidget {
                         },
                       );
                     }),
+                    Obx(
+                      () => Visibility(
+                        visible: controller.position.value == "others",
+                        child: CommonTextField(
+                          controller: controller.otherPositionController,
+                        ).paddingOnly(top: 5),
+                      ),
+                    ),
                   ],
                 ),
               ),

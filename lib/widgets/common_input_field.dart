@@ -56,6 +56,8 @@ class CommonTextField extends StatelessWidget {
           obscureText: obscureText,
           keyboardType: keyboardType,
           validator: validator,
+          onTapOutside:
+              (event) => FocusManager.instance.primaryFocus?.unfocus(),
           decoration: InputDecoration(
             hintText: hintText,
             border: const OutlineInputBorder(
