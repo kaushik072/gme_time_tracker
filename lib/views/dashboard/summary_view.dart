@@ -1,6 +1,5 @@
 import 'dart:ui' as ui;
 
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
@@ -405,7 +404,7 @@ class SummaryView extends StatelessWidget {
 
                             // print(file);
 
-                            await Downloader.downloadFile(file: file);
+                            // await Downloader.downloadFile(file: file);
                           },
                         );
                       },
