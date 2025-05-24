@@ -13,6 +13,8 @@ class ProfileController extends GetxController {
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
   final emailController = TextEditingController();
+  final institutionController = TextEditingController();
+  final specialtyController = TextEditingController();
   final otherDegreeController = TextEditingController();
   final otherPositionController = TextEditingController();
 
@@ -36,6 +38,8 @@ class ProfileController extends GetxController {
     lastNameController.text = user?.lastName ?? '';
 
     emailController.text = user?.email ?? '';
+    institutionController.text = user?.institution ?? '';
+    specialtyController.text = user?.specialty ?? '';
 
     degree.value = getDegree()?.toLowerCase().trim();
     // degree.value = user?.degree.toLowerCase().trim();
@@ -114,9 +118,11 @@ class ProfileController extends GetxController {
             position.value == "others"
                 ? otherPositionController.text
                 : position.value,
+        institution: institutionController.text.trim(),
+        specialty: specialtyController.text.trim(),
       );
       isEditing.value = false;
-      Future.delayed(const Duration(seconds: 1), () {
+      await Future.delayed(const Duration(seconds: 1), () {
         setUserData();
       });
       return isUpdated;

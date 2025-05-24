@@ -117,27 +117,27 @@ class SummaryController extends GetxController {
     selectedYear.value = year;
   }
 
-  Future<void> exportReport() async {
-    final monthActivities = _getActivitiesForSelectedMonth();
-    if (monthActivities.isEmpty) {
-      ToastHelper.showErrorToast("No activities found for the selected month.");
-      return;
-    }
+  // Future<void> exportReport() async {
+  //   final monthActivities = _getActivitiesForSelectedMonth();
+  //   if (monthActivities.isEmpty) {
+  //     ToastHelper.showErrorToast("No activities found for the selected month.");
+  //     return;
+  //   }
 
-    try {
-      await ExcelHelper.exportActivities(
-        monthActivities,
-        selectedMonth.value,
-        selectedYear.value,
-        userName,
-        position,
-      );
+  //   try {
+  //     await ExcelHelper.exportActivities(
+  //       monthActivities,
+  //       selectedMonth.value,
+  //       selectedYear.value,
+  //       userName,
+  //       position,
+  //     );
 
-      // ToastHelper.showSuccessToast('Report exported successfully');
-    } catch (e) {
-      ToastHelper.showErrorToast('Failed to export report');
-    }
-  }
+  //     // ToastHelper.showSuccessToast('Report exported successfully');
+  //   } catch (e) {
+  //     ToastHelper.showErrorToast('Failed to export report');
+  //   }
+  // }
 }
 
 class ActivityDistribution {

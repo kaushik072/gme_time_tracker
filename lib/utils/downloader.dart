@@ -7,7 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'toast_helper.dart';
 
 class Downloader {
-  static Future<void> downloadFile({required File file}) async {
+      static Future<void> downloadFile({required File file}) async {
     try {
       if (await _requestStoragePermission()) {
         // Get the Downloads directory

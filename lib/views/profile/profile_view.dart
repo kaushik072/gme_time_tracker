@@ -90,6 +90,21 @@ class ProfileView extends StatelessWidget {
                         },
                       );
                     }),
+                    const SizedBox(height: 16),
+                    CommonTextField(
+                      controller: controller.institutionController,
+                      labelText: 'Institution',
+                      hintText: 'Enter your institution',
+                    ),
+
+                    const SizedBox(height: 16),
+                    CommonTextField(
+                      controller: controller.specialtyController,
+                      labelText: 'Specialty',
+                      hintText: 'Enter your specialty',
+                    ),
+                    const SizedBox(height: 16),
+
                     Obx(
                       () => Visibility(
                         visible: controller.position.value == "others",

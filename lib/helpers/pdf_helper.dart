@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
+import 'package:gme_time_tracker/utils/downloader.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
@@ -138,35 +139,39 @@ class PdfGenerator {
       graphics.drawString(
         copyrightText,
         PdfStandardFont(PdfFontFamily.helvetica, 10),
-        bounds: Rect.fromLTWH(0, pageSize.height - 30, pageSize.width, 20),
+        bounds: Rect.fromLTWH(0, pageSize.height - 15, pageSize.width, 20),
         format: PdfStringFormat(alignment: PdfTextAlignment.center),
       );
     }
 
-    // Page 1: User Details + Donut Chart
     final PdfPage firstPage = document.pages.add();
     drawHeaderFooter(firstPage);
-
     final pageSize = firstPage.getClientSize();
     double yOffset = 75 + sectionMargin;
 
     final PdfGraphics graphics = firstPage.graphics;
 
     // --- User Details Section Card ---
-    final double userDetailsPadding = sectionPadding;
+    final double userDetailsPadding = sectionPadding - 5;
     final double userDetailsMargin = sectionMargin;
     final double userDetailsLabelWidth = 80;
     final double userDetailsValueWidth = 140;
     final double userDetailsRowHeight = 22;
     final int userDetailsRows = 4;
     final int userDetailsColumns = 2;
-    final double userDetailsTitleHeight = 28;
     final double userDetailsContentHeight =
         userDetailsRows * userDetailsRowHeight;
     final double userDetailsCardHeight =
-        userDetailsTitleHeight +
-        userDetailsContentHeight +
-        userDetailsPadding * 2;
+        userDetailsContentHeight + userDetailsPadding * 2;
+
+    // Draw section title outside the card
+    graphics.drawString(
+      'User Details',
+      sectionTitleFont,
+      brush: PdfSolidBrush(sectionTitleColor),
+      bounds: Rect.fromLTWH(userDetailsMargin, yOffset, 300, 22),
+    );
+    yOffset += 30; // Add space between title and card
 
     final double cardX = userDetailsMargin;
     final double cardY = yOffset;
@@ -179,39 +184,26 @@ class PdfGenerator {
       pen: PdfPen(PdfColor(220, 220, 220)),
     );
 
-    // Section Title inside card
-    graphics.drawString(
-      'User Details',
-      sectionTitleFont,
-      brush: PdfSolidBrush(sectionTitleColor),
-      bounds: Rect.fromLTWH(
-        cardX + userDetailsPadding,
-        cardY + userDetailsPadding,
-        200,
-        userDetailsTitleHeight,
-      ),
-    );
-
     // User Details Fields in two columns, styled
     final leftFields = ['Name', 'Degree', 'Institution', 'Specialty'];
-    final rightFields = ['Email', 'Position', 'Month/Year', ''];
+    final rightFields = ['Email', 'Position', 'Month/Year', 'Total Hours'];
     double leftColX = cardX + userDetailsPadding;
     double rightColX = cardX + cardWidth / 2 + userDetailsPadding / 2;
-    double firstRowY = cardY + userDetailsPadding + userDetailsTitleHeight;
+    double firstRowY = cardY + userDetailsPadding;
     final PdfFont smallFieldLabelFont = PdfStandardFont(
       PdfFontFamily.helvetica,
-      11, // 1pt smaller
+      11,
       style: PdfFontStyle.bold,
     );
     final PdfFont smallFieldValueFont = PdfStandardFont(
       PdfFontFamily.helvetica,
-      11, // 1pt smaller
+      11,
     );
     for (int i = 0; i < userDetailsRows; i++) {
       // Left column
       if (i < leftFields.length && leftFields[i].isNotEmpty) {
         final field = leftFields[i];
-        final value = userDetails[field] ?? '';
+        final value = userDetails[field]?.toString().trim() ?? 'N/A';
         graphics.drawString(
           '$field:',
           smallFieldLabelFont,
@@ -223,7 +215,7 @@ class PdfGenerator {
           ),
         );
         graphics.drawString(
-          value,
+          value.isEmpty ? 'N/A' : value,
           smallFieldValueFont,
           bounds: Rect.fromLTWH(
             leftColX + userDetailsLabelWidth + 5,
@@ -236,7 +228,7 @@ class PdfGenerator {
       // Right column
       if (i < rightFields.length && rightFields[i].isNotEmpty) {
         final field = rightFields[i];
-        final value = userDetails[field] ?? '';
+        final value = userDetails[field]?.toString().trim() ?? 'N/A';
         graphics.drawString(
           '$field:',
           smallFieldLabelFont,
@@ -248,7 +240,7 @@ class PdfGenerator {
           ),
         );
         graphics.drawString(
-          value,
+          value.isEmpty ? 'N/A' : value,
           smallFieldValueFont,
           bounds: Rect.fromLTWH(
             rightColX + userDetailsLabelWidth + 5,
@@ -259,7 +251,11 @@ class PdfGenerator {
         );
       }
     }
-    yOffset = cardY + cardHeight + sectionMargin;
+    yOffset =
+        cardY +
+        cardHeight +
+        sectionMargin -
+        10; // Reduced extra space between sections
 
     // --- Activities Overview Section Title ---
     graphics.drawString(
@@ -465,6 +461,14 @@ class PdfGenerator {
 
     // --- Table View Section ---
     // Always start table view on a new page
+    // Sort activities: if isManual use createdAt, else use startTime (nulls last)
+    activityList.sort((a, b) {
+      DateTime aKey =
+          a.isManual ? a.createdAt : (a.startTime ?? DateTime(2100));
+      DateTime bKey =
+          b.isManual ? b.createdAt : (b.startTime ?? DateTime(2100));
+      return aKey.compareTo(bKey);
+    });
     final PdfPage tablePage = document.pages.add();
     drawHeaderFooter(tablePage);
     double tableYOffset = 75 + sectionMargin + 30;
@@ -480,6 +484,49 @@ class PdfGenerator {
     const int rowsPerPage = 15; // Show 15 entries per page
     final int totalPages = (activityList.length / rowsPerPage).ceil();
 
+    // --- Attestation block for first page ---
+    {
+      final double pageHeight = firstPage.getClientSize().height;
+      final double pageWidth = firstPage.getClientSize().width;
+      final double footerHeight = 30;
+      final double attestationBlockHeight = 50;
+      final double attestationY =
+          pageHeight -
+          footerHeight -
+          attestationBlockHeight +
+          5; // Reduced space above footer
+
+      final PdfFont attestationFont = PdfStandardFont(
+        PdfFontFamily.helvetica,
+        13,
+      );
+      final PdfFont signatureFont = PdfStandardFont(
+        PdfFontFamily.helvetica,
+        13,
+        style: PdfFontStyle.bold,
+      );
+      final PdfBrush attestationBrush = PdfSolidBrush(sectionTitleColor);
+      final String name = userDetails['Name']?.toString().trim() ?? 'N/A';
+      final String degree = userDetails['Degree']?.toString().trim() ?? 'N/A';
+      final String signatureLine = '$name, $degree';
+
+      firstPage.graphics.drawString(
+        'I hereby certify that the above time logs are accurate and true to the best of my knowledge and belief.',
+        attestationFont,
+        brush: attestationBrush,
+        bounds: Rect.fromLTWH(0, attestationY, pageWidth, 20),
+        format: PdfStringFormat(alignment: PdfTextAlignment.center),
+      );
+      firstPage.graphics.drawString(
+        signatureLine,
+        signatureFont,
+        brush: attestationBrush,
+        bounds: Rect.fromLTWH(0, attestationY + 26, pageWidth, 20),
+        format: PdfStringFormat(alignment: PdfTextAlignment.center),
+      );
+    }
+
+    // --- Table rendering ---
     for (int pageIndex = 0; pageIndex < totalPages; pageIndex++) {
       final PdfPage page = (pageIndex == 0) ? tablePage : document.pages.add();
       if (pageIndex != 0) {
@@ -505,7 +552,13 @@ class PdfGenerator {
       for (int i = start; i < end; i++) {
         final activity = activityList[i];
         PdfGridRow row = grid.rows.add();
-        row.cells[0].value = DateFormat('yyyy-MM-dd').format(activity.date);
+        // Show the date used for sorting
+        DateTime? displayDate =
+            activity.isManual ? activity.createdAt : activity.startTime;
+        row.cells[0].value =
+            displayDate != null
+                ? DateFormat('yyyy-MM-dd').format(displayDate)
+                : 'N/A';
         row.cells[1].value = activity.activityType;
         row.cells[2].value = _formatDuration(activity.durationMinutes);
         row.cells[3].value = (activity.notes ?? '');
@@ -553,17 +606,13 @@ class PdfGenerator {
             ..setAttribute('download', fileName)
             ..click();
       html.Url.revokeObjectUrl(url);
-      return null; // Return null for web since we're triggering download directly
     } else {
-      final Directory? dir;
-      if (Platform.isAndroid) {
-        dir = await getExternalStorageDirectory();
-      } else {
-        dir = await getApplicationDocumentsDirectory();
-      }
+      final Directory dir = await getTemporaryDirectory();
 
-      final File file = File('${dir?.path}/$fileName.pdf');
-      return await file.writeAsBytes(bytes);
+      final File file = await File('${dir.path}/$fileName.pdf').writeAsBytes(bytes);
+
+      await Downloader.downloadFile(file: file);
+
     }
   }
 

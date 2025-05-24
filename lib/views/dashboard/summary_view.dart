@@ -95,319 +95,38 @@ class SummaryView extends StatelessWidget {
                   }),
                 ),
                 InkWell(
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return DownloadOptionsDialog(
-                          onExcelSelected: () {
-                            controller.exportReport();
-                          },
-                          onPdfSelected: () async {
-                            String month =
-                                controller.selectedMonth.value.toString();
-                            String year =
-                                controller.selectedYear.value.toString();
+                  onTap: () async {
+                    String month = controller.selectedMonth.value.toString();
+                    String year = controller.selectedYear.value.toString();
 
-                            UserModel? user =
-                                Get.find<DashboardController>().user.value;
+                    UserModel? user =
+                        Get.find<DashboardController>().user.value;
 
-                            // Load logo
-                            final ByteData logoData = await rootBundle.load(
-                              'assets/logo.png',
-                            );
-                            final Uint8List logoBytes =
-                                logoData.buffer.asUint8List();
+                    final ByteData logoData = await rootBundle.load(
+                      'assets/logo.png',
+                    );
+                    final Uint8List logoBytes = logoData.buffer.asUint8List();
 
-                            // Prepare user details
-                            final Map<String, dynamic> userDetails = {
-                              'Name': user?.firstName ?? '',
-                              'Email': user?.email ?? '',
-                            };
+                    final Map<String, dynamic> userDetails = {
+                      'Name': user?.firstName ?? '',
+                      'Email': user?.email ?? '',
+                      'Position': user?.position ?? '',
+                      'Degree': user?.degree ?? '',
+                      'Institution': user?.institution ?? '',
+                      'Specialty': user?.specialty ?? '',
+                      'Month/Year': '$month $year',
+                      'Total Hours': controller.totalTime.toString(),
+                    };
 
-                            // Get activities
-                            List<ActivityModel> activities =
-                                controller.activities;
+                    // Get activities
+                    List<ActivityModel> activities = controller.activities;
 
-                            for (final activity in activities) {
-                              print(activity.toJson());
-                            }
-
-                            // return;
-
-                            // final chartBytes =
-                            //     await controller.controller.capture();
-                            final data = controller.getActivityDistribution();
-
-                            Color _getColorForIndex(int index) {
-                              const colors = [
-                                Colors.blue,
-                                Colors.orange,
-                                Colors.pink,
-                                Colors.green,
-                                Colors.purple,
-                                Colors.red,
-                                Colors.teal,
-                              ];
-                              return colors[index % colors.length];
-                            }
-
-                            // final chartBytes = await renderWidgetToImage(
-                            //   widget: Center(
-                            //     child:
-                            //         data.isEmpty
-                            //             ? const Text('No data available')
-                            //             : ColoredBox(
-                            //               color: Colors.green,
-                            //               child: Column(
-                            //                 children: [
-                            //                   /// 🔵 Right Side: Pie Chart
-                            //                   SizedBox(
-                            //                     width: 400,
-                            //                     height: 400,
-                            //                     child: PieChart(
-                            //                       PieChartData(
-                            //                         sections:
-                            //                             data
-                            //                                 .asMap()
-                            //                                 .map<
-                            //                                   int,
-                            //                                   PieChartSectionData
-                            //                                 >((index, d) {
-                            //                                   final section = PieChartSectionData(
-                            //                                     value:
-                            //                                         d.minutes
-                            //                                             .toDouble(),
-                            //                                     title:
-                            //                                         d.duration,
-                            //                                     color:
-                            //                                         _getColorForIndex(
-                            //                                           index,
-                            //                                         ),
-                            //                                     radius: 250,
-                            //                                     titleStyle: const TextStyle(
-                            //                                       fontSize: 16,
-                            //                                       fontWeight:
-                            //                                           FontWeight
-                            //                                               .bold,
-                            //                                       color:
-                            //                                           Colors
-                            //                                               .white,
-                            //                                     ),
-                            //                                     titlePositionPercentageOffset:
-                            //                                         0.6,
-                            //                                   );
-                            //                                   return MapEntry(
-                            //                                     index,
-                            //                                     section,
-                            //                                   );
-                            //                                 })
-                            //                                 .values
-                            //                                 .toList(),
-                            //                         centerSpaceRadius: 40,
-                            //                         sectionsSpace: 2,
-                            //                       ),
-                            //                     ),
-                            //                   ),
-                            //
-                            //                   // const SizedBox(width: 100),
-                            //
-                            //                   /// 🟡 Left Side: Indicators
-                            //                   ///
-                            //                   Spacer(),
-                            //                   GridView(
-                            //                     gridDelegate:
-                            //                         const SliverGridDelegateWithFixedCrossAxisCount(
-                            //                           crossAxisCount: 3,
-                            //                           mainAxisExtent: 25,
-                            //                           mainAxisSpacing: 10,
-                            //                           crossAxisSpacing: 10,
-                            //                         ),
-                            //                     shrinkWrap: true,
-                            //                     // alignment: WrapAlignment.start,
-                            //                     // runAlignment:
-                            //                     //     WrapAlignment.start,
-                            //                     // crossAxisAlignment:
-                            //                     //     WrapCrossAlignment.start,
-                            //                     // direction: Axis.horizontal,
-                            //                     // runSpacing: 10,
-                            //                     // spacing: 10,
-                            //                     // mainAxisAlignment:
-                            //                     //     MainAxisAlignment.center,
-                            //                     // crossAxisAlignment:
-                            //                     //     CrossAxisAlignment.start,
-                            //                     children:
-                            //                         data.asMap().entries.map((
-                            //                           entry,
-                            //                         ) {
-                            //                           final index = entry.key;
-                            //                           final item = entry.value;
-                            //
-                            //                           return Row(
-                            //                             children: [
-                            //                               Container(
-                            //                                 width: 20,
-                            //                                 height: 20,
-                            //                                 decoration: BoxDecoration(
-                            //                                   shape:
-                            //                                       BoxShape
-                            //                                           .circle,
-                            //                                   color:
-                            //                                       _getColorForIndex(
-                            //                                         index,
-                            //                                       ),
-                            //                                 ),
-                            //                               ),
-                            //                               const SizedBox(
-                            //                                 width: 12,
-                            //                               ),
-                            //                               Text(
-                            //                                 item.activity,
-                            //                                 style: const TextStyle(
-                            //                                   fontSize: 24,
-                            //                                   color:
-                            //                                       AppColors
-                            //                                           .textPrimary,
-                            //                                 ),
-                            //                               ),
-                            //                             ],
-                            //                           );
-                            //                         }).toList(),
-                            //                   ),
-                            //                   Spacer(),
-                            //                 ],
-                            //               ),
-                            //             ),
-                            //   ),
-                            //   width: 1200,
-                            //   height: 1200,
-                            //   pixelRatio: 0.5,
-                            // );
-
-                            // Calculate total hours and average
-                            // double totalHours = activities.fold(
-                            //     0,
-                            //     (sum, activity) =>
-                            //         sum + (activity.durationMinutes / 60));
-                            // double averageHoursPerDay = activities.isNotEmpty
-                            //     ? totalHours / activities.length
-                            //     : 0;
-
-                            // // Prepare summary data
-                            // final Map<String, dynamic> summaryData = {
-                            //   'Total Hours': totalHours.toStringAsFixed(2),
-                            //   'Month': '$month $year',
-                            //   'Average Hours/Day':
-                            //       averageHoursPerDay.toStringAsFixed(2),
-                            //   'Total Activities': activities.length.toString(),
-                            // };
-
-                            // // Convert activities to entries format
-                            // final List<Map<String, dynamic>> entries =
-                            //     activities
-                            //         .map((activity) => {
-                            //               'Date': DateFormat('MMM dd, yyyy')
-                            //                   .format(activity.date),
-                            //               'Hours':
-                            //                   (activity.durationMinutes / 60)
-                            //                       .toStringAsFixed(2),
-                            //               'Activity Type':
-                            //                   activity.activityType,
-                            //               'Notes': activity.notes ?? '',
-                            //               'Status': activity.status,
-                            //             })
-                            //         .toList();
-
-                            // final chartBytes = await captureWidgetAsImage(
-                            //   _widgetKey,
-                            //   pixelRatio: 1.5,
-                            // );
-
-                            // final chartBytes = await controller
-                            //     .screenshotController
-                            //     .capture(delay: Duration(seconds: 1));
-
-                            // final chartBytes = await controller
-                            //     .screenshotController
-                            //     .captureFromWidget(
-                            //       Center(
-                            //         child: Obx(() {
-                            //           final data =
-                            //               controller.getActivityDistribution();
-                            //
-                            //           if (data.isEmpty) {
-                            //             return const Text('No data available');
-                            //           }
-                            //
-                            //           return SfCircularChart(
-                            //             legend: Legend(
-                            //               // height: "35%",
-                            //               // width: "65%",
-                            //               iconHeight: 25,
-                            //               iconBorderWidth: 25,
-                            //               overflowMode:
-                            //                   LegendItemOverflowMode.scroll,
-                            //               isVisible: true,
-                            //               position: LegendPosition.right,
-                            //               orientation:
-                            //                   LegendItemOrientation.vertical,
-                            //             ),
-                            //             series: <CircularSeries>[
-                            //               DoughnutSeries<
-                            //                 ActivityDistribution,
-                            //                 String
-                            //               >(
-                            //                 dataSource: data,
-                            //                 xValueMapper:
-                            //                     (
-                            //                       ActivityDistribution data,
-                            //                       _,
-                            //                     ) => data.activity,
-                            //                 yValueMapper:
-                            //                     (
-                            //                       ActivityDistribution data,
-                            //                       _,
-                            //                     ) => data.minutes,
-                            //                 dataLabelMapper:
-                            //                     (
-                            //                       ActivityDistribution data,
-                            //                       _,
-                            //                     ) => data.duration,
-                            //                 dataLabelSettings:
-                            //                     DataLabelSettings(
-                            //                       isVisible: true,
-                            //                       labelPosition:
-                            //                           ChartDataLabelPosition
-                            //                               .inside,
-                            //                       textStyle: TextStyle(
-                            //                         fontSize: 12,
-                            //                       ),
-                            //                     ),
-                            //               ),
-                            //             ],
-                            //           );
-                            //         }),
-                            //       ),
-                            //       targetSize: Size(1200, 500),
-                            //       context: context,
-                            //     );
-
-                            final file =
-                                await PdfGenerator.generateUserActivityPDF(
-                                  fileName: 'GME_Hours_${month}_$year',
-                                  userDetails: userDetails,
-                                  activityList: activities,
-                                  logoBytes: logoBytes,
-                                  copyrightText: '© 2025 GME Time Tracker',
-                                  // chartBytes: chartBytes,
-                                );
-
-                            // print(file);
-
-                            // await Downloader.downloadFile(file: file);
-                          },
-                        );
-                      },
+                    await PdfGenerator.generateUserActivityPDF(
+                      fileName: 'GME_Hours_${month}_$year',
+                      userDetails: userDetails,
+                      activityList: activities,
+                      logoBytes: logoBytes,
+                      copyrightText: '© 2025 GME Time Tracker',
                     );
                   },
                   child: Container(

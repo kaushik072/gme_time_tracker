@@ -61,6 +61,7 @@ class DashboardController extends GetxController {
 
       data.listen((userData) {
         if (userData != null) {
+          print(userData?.toJson());
           user.value = userData;
         }
       });
@@ -432,6 +433,8 @@ class DashboardController extends GetxController {
     required String lastName,
     String? degree,
     String? position,
+    String? institution,
+    String? specialty,
   }) async {
     try {
       await _repository.updateUser(
@@ -440,6 +443,8 @@ class DashboardController extends GetxController {
         lastName: lastName,
         degree: degree,
         position: position,
+        institution: institution,
+        specialty: specialty,
       );
       ToastHelper.showSuccessToast('User updated successfully');
       return true;

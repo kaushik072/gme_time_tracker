@@ -5,6 +5,8 @@ class UserModel {
   final String email;
   final String degree;
   final String position;
+  final String? institution;
+  final String? specialty;
 
   UserModel({
     required this.id,
@@ -13,6 +15,8 @@ class UserModel {
     required this.email,
     required this.degree,
     required this.position,
+    this.institution,
+    this.specialty,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json, String id) {
@@ -23,6 +27,8 @@ class UserModel {
       email: json['email'] as String,
       degree: json['degree']?.toLowerCase() as String,
       position: json['position']?.toLowerCase() as String,
+      institution: json['institution']?.toLowerCase() as String?,
+      specialty: json['specialty']?.toLowerCase() as String?,
     );
   }
 
@@ -34,6 +40,8 @@ class UserModel {
       'email': email,
       'degree': degree,
       'position': position,
+      'institution': institution,
+      'specialty': specialty,
     };
   }
 
@@ -44,6 +52,8 @@ class UserModel {
     String? email,
     String? degree,
     String? position,
+    String? institution,
+    String? specialty,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -52,6 +62,8 @@ class UserModel {
       email: email ?? this.email,
       degree: degree ?? this.degree,
       position: position ?? this.position,
+      institution: institution ?? this.institution,
+      specialty: specialty ?? this.specialty,
     );
   }
 }

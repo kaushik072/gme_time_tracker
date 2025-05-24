@@ -110,12 +110,16 @@ class DashboardRepository {
     required String lastName,
     String? degree,
     String? position,
+    String? institution,
+    String? specialty,
   }) async {
     await _firestore.collection('users').doc(userId).update({
       'firstName': firstName,
       'lastName': lastName,
       'degree': degree,
       'position': position,
+      'institution': institution,
+      'specialty': specialty,
     });
   }
   // Future<Map<String, dynamic>?> fetchUserData(String userId) async {
