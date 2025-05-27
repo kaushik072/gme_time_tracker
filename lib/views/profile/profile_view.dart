@@ -169,15 +169,6 @@ class ProfileView extends StatelessWidget {
                         ],
                       ),
             ),
-
-              const SizedBox(height: 16),
-              CommonButton(
-                text: 'Delete Account',
-                onPressed: () => controller.showDeleteAccountDialog(context),
-                width: double.infinity,
-                color: Colors.red,
-              ),
-            
           ],
         );
       },

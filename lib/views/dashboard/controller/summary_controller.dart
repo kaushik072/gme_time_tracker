@@ -1,7 +1,6 @@
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:screenshot/screenshot.dart';
-import 'package:widgets_to_image/widgets_to_image.dart';
+
 import '../../../models/activity_model.dart';
 import '../../../utils/excel_helper.dart';
 import '../../../utils/toast_helper.dart';
@@ -10,8 +9,6 @@ import 'dashboard_controller.dart';
 class SummaryController extends GetxController {
   final selectedMonth = RxString(DateFormat('MMMM').format(DateTime.now()));
   final selectedYear = DateTime.now().year.obs;
-  WidgetsToImageController controller = WidgetsToImageController();
-  ScreenshotController screenshotController = ScreenshotController();
 
   final months = [
     'January',

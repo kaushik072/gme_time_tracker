@@ -1,26 +1,18 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 import 'package:gme_time_tracker/models/user_model.dart';
 import 'package:gme_time_tracker/widgets/common_input_field.dart';
-import 'package:screenshot/screenshot.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart' as intl;
-import 'package:widgets_to_image/widgets_to_image.dart';
 import '../../helpers/pdf_helper.dart';
 import '../../models/activity_model.dart';
 import '../../utils/app_colors.dart';
-import '../../utils/downloader.dart';
-import '../../widgets/download_options_dialog.dart';
 import 'controller/dashboard_controller.dart';
 import 'controller/summary_controller.dart';
 import 'package:flutter/services.dart';
 
 class SummaryView extends StatelessWidget {
   final controller = Get.put(SummaryController());
-  final GlobalKey _widgetKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -191,76 +183,60 @@ class SummaryView extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       Expanded(
-                        child: WidgetsToImage(
-                          controller: controller.controller,
+                        child: Center(
+                          child: Obx(() {
+                            final data = controller.getActivityDistribution();
 
-                          child: RepaintBoundary(
-                            key: _widgetKey,
-                            child: Screenshot(
-                              controller: controller.screenshotController,
-                              child: Center(
-                                child: Obx(() {
-                                  final data =
-                                      controller.getActivityDistribution();
+                            if (data.isEmpty) {
+                              return const Text('No data available');
+                            }
 
-                                  if (data.isEmpty) {
-                                    return const Text('No data available');
-                                  }
-
-                                  return SfCircularChart(
-                                    legend: Legend(
-                                      // height: "35%",
-                                      // width: "65%",
-                                      iconHeight: 25,
-                                      iconBorderWidth: 25,
-                                      overflowMode:
-                                          isMobile
-                                              ? LegendItemOverflowMode.wrap
-                                              : LegendItemOverflowMode.scroll,
-                                      isVisible: true,
-                                      position:
-                                          isMobile
-                                              ? LegendPosition.bottom
-                                              : LegendPosition.right,
-                                      orientation:
-                                          isMobile
-                                              ? LegendItemOrientation.vertical
-                                              : LegendItemOrientation.vertical,
-                                    ),
-                                    series: <CircularSeries>[
-                                      DoughnutSeries<
-                                        ActivityDistribution,
-                                        String
-                                      >(
-                                        dataSource: data,
-                                        xValueMapper:
-                                            (ActivityDistribution data, _) =>
-                                                data.activity,
-                                        yValueMapper:
-                                            (ActivityDistribution data, _) =>
-                                                data.minutes,
-                                        dataLabelMapper:
-                                            (ActivityDistribution data, _) =>
-                                                data.duration,
-                                        dataLabelSettings: DataLabelSettings(
-                                          isVisible: true,
-                                          labelPosition:
-                                              isMobile
-                                                  ? ChartDataLabelPosition
-                                                      .outside
-                                                  : ChartDataLabelPosition
-                                                      .inside,
-                                          textStyle: TextStyle(
-                                            fontSize: isMobile ? 10 : 12,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                }),
+                            return SfCircularChart(
+                              legend: Legend(
+                                // height: "35%",
+                                // width: "65%",
+                                iconHeight: 25,
+                                iconBorderWidth: 25,
+                                overflowMode:
+                                    isMobile
+                                        ? LegendItemOverflowMode.wrap
+                                        : LegendItemOverflowMode.scroll,
+                                isVisible: true,
+                                position:
+                                    isMobile
+                                        ? LegendPosition.bottom
+                                        : LegendPosition.right,
+                                orientation:
+                                    isMobile
+                                        ? LegendItemOrientation.vertical
+                                        : LegendItemOrientation.vertical,
                               ),
-                            ),
-                          ),
+                              series: <CircularSeries>[
+                                DoughnutSeries<ActivityDistribution, String>(
+                                  dataSource: data,
+                                  xValueMapper:
+                                      (ActivityDistribution data, _) =>
+                                          data.activity,
+                                  yValueMapper:
+                                      (ActivityDistribution data, _) =>
+                                          data.minutes,
+                                  dataLabelMapper:
+                                      (ActivityDistribution data, _) =>
+                                          data.duration,
+                                  dataLabelSettings: DataLabelSettings(
+                                    isVisible: true,
+                                    labelPosition:
+                                        isMobile
+                                            ? ChartDataLabelPosition.outside
+                                            : ChartDataLabelPosition.inside,
+                                    textStyle: TextStyle(
+                                      fontSize: isMobile ? 10 : 12,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          }),
                         ),
                       ),
                     ],
@@ -329,132 +305,3 @@ class SummaryView extends StatelessWidget {
     );
   }
 }
-
-// Future<Uint8List> renderWidgetToImage({
-//   required Widget widget,
-//   required double width,
-//   required double height,
-//   double pixelRatio = 3.0,
-// }) async {
-//   final repaintBoundary = RenderRepaintBoundary();
-
-//   final renderView = RenderView(
-//     view: WidgetsBinding.instance.platformDispatcher.views.first,
-//     child: RenderPositionedBox(
-//       alignment: Alignment.center,
-//       child: repaintBoundary,
-//     ),
-//     configuration: ViewConfiguration(
-//       logicalConstraints: BoxConstraints.tight(Size(width, height)),
-//       devicePixelRatio: pixelRatio,
-//     ),
-//   );
-
-//   final pipelineOwner = PipelineOwner();
-//   final buildOwner = BuildOwner(focusManager: FocusManager());
-
-//   pipelineOwner.rootNode = renderView;
-//   renderView.prepareInitialFrame();
-
-//   final rootElement = RenderObjectToWidgetAdapter<RenderBox>(
-//     container: repaintBoundary,
-//     child: MediaQuery(
-//       data: MediaQueryData(size: Size(width, height)),
-//       child: Directionality(textDirection: TextDirection.ltr, child: widget),
-//     ),
-//   ).attachToRenderTree(buildOwner);
-
-//   buildOwner.buildScope(rootElement);
-//   buildOwner.finalizeTree();
-
-//   pipelineOwner.flushLayout();
-//   pipelineOwner.flushCompositingBits();
-//   pipelineOwner.flushPaint();
-
-//   // Optional wait if your widget has animations or charts
-//   await Future.delayed(const Duration(milliseconds: 5000));
-
-//   pipelineOwner.flushLayout();
-//   pipelineOwner.flushCompositingBits();
-//   pipelineOwner.flushPaint();
-
-//   final image = await repaintBoundary.toImage(pixelRatio: pixelRatio);
-//   final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-//   return byteData!.buffer.asUint8List();
-// }
-
-// Future<Uint8List> renderWidgetToImage({
-//   required Widget widget,
-//   required double width,
-//   required double height,
-//   double pixelRatio = 3.0,
-// }) async {
-//   final repaintBoundary = RenderRepaintBoundary();
-
-//   final renderView = RenderView(
-//     configuration: ViewConfiguration(
-//       logicalConstraints: BoxConstraints.tight(Size(width, height)),
-//       devicePixelRatio: pixelRatio,
-//     ),
-//     view: WidgetsBinding.instance.platformDispatcher.views.first,
-//     child: RenderPositionedBox(
-//       alignment: Alignment.center,
-//       child: repaintBoundary,
-//     ),
-//   );
-
-//   final pipelineOwner = PipelineOwner();
-//   final buildOwner = BuildOwner(focusManager: FocusManager());
-//   pipelineOwner.rootNode = renderView;
-
-//   renderView.prepareInitialFrame();
-
-//   final rootElement = RenderObjectToWidgetAdapter<RenderBox>(
-//     container: repaintBoundary,
-//     child: Directionality(
-//       textDirection: TextDirection.ltr,
-//       child: MediaQuery(
-//         data: MediaQueryData(size: Size(width, height)),
-//         child: widget,
-//       ),
-//     ),
-//   ).attachToRenderTree(buildOwner);
-
-//   // Perform build, layout, and paint
-//   buildOwner.buildScope(rootElement);
-//   buildOwner.finalizeTree();
-
-//   pipelineOwner.flushLayout();
-//   pipelineOwner.flushCompositingBits();
-//   pipelineOwner.flushPaint();
-
-//   // Let the microtasks complete
-//   await Future.delayed(Duration(milliseconds: 20));
-//   buildOwner.buildScope(rootElement);
-//   buildOwner.finalizeTree();
-//   pipelineOwner.flushLayout();
-//   pipelineOwner.flushCompositingBits();
-//   pipelineOwner.flushPaint();
-
-//   final image = await repaintBoundary.toImage(pixelRatio: pixelRatio);
-//   final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-//   return byteData!.buffer.asUint8List();
-// }
-
-// Future<Uint8List?> captureWidgetAsImage(
-//   GlobalKey key, {
-//   double pixelRatio = 3.0,
-// }) async {
-//   try {
-//     RenderRepaintBoundary? boundary =
-//         key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
-//     if (boundary == null) return null;
-
-//     final image = await boundary.toImage(pixelRatio: pixelRatio);
-//     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-//     return byteData?.buffer.asUint8List();
-//   } catch (e) {
-//     debugPrint('Error capturing image: $e');
-//     return null;
-//   }
-// }

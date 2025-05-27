@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:gme_time_tracker/widgets/common_confirm_dialog.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../utils/app_colors.dart';
 import '../utils/app_strings.dart';
 import '../utils/toast_helper.dart';
 import '../routes/app_routes.dart';
 import '../views/profile/profile_view.dart';
 import 'common_button.dart';
+import 'common_input_field.dart';
+import 'dart:html' as html;
 
 class WebHeader extends StatelessWidget implements PreferredSizeWidget {
   final bool isDashboard;
@@ -113,6 +118,26 @@ class WebHeader extends StatelessWidget implements PreferredSizeWidget {
                         ],
                       ),
                     ),
+                    const PopupMenuItem(
+                      value: 'contact_us',
+                      child: Row(
+                        children: [
+                          Icon(Icons.contact_support_outlined),
+                          SizedBox(width: 8),
+                          Text('Contact Us'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'delete_account',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete_forever, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text('Delete Account'),
+                        ],
+                      ),
+                    ),
                   ],
               onSelected: (value) async {
                 if (value == 'logout') {
@@ -184,6 +209,192 @@ class WebHeader extends StatelessWidget implements PreferredSizeWidget {
                           ),
                     );
                   }
+                } else if (value == 'delete_account') {
+                  await showDialog(
+                    context: context,
+                    builder: (context) {
+                      return Dialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        insetPadding: const EdgeInsets.all(20),
+                        child: Container(
+                          padding: const EdgeInsets.all(20),
+                          constraints: const BoxConstraints(maxWidth: 400),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Forgot password?',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: () => GoRouter.of(context).pop(),
+                                    icon: const Icon(Icons.close),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              CommonTextField(
+                                controller: deleteAccountEmailController,
+                                hintText: 'Enter your email',
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.deny(
+                                    RegExp(r'\s+'),
+                                  ),
+                                ],
+                                keyboardType: TextInputType.emailAddress,
+                              ),
+                              const SizedBox(height: 16),
+                              Obx(
+                                () => CommonTextField(
+                                  obscureText:
+                                      deleteAccountPasswordVisible.value,
+                                  suffixIcon: IconButton(
+                                    onPressed: () {
+                                      deleteAccountPasswordVisible.value =
+                                          !deleteAccountPasswordVisible.value;
+                                    },
+                                    icon: Icon(
+                                      deleteAccountPasswordVisible.value
+                                          ? Icons.visibility
+                                          : Icons.visibility_off,
+                                    ),
+                                  ),
+                                  controller: deleteAccountPasswordController,
+                                  hintText: 'Enter your password',
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.deny(
+                                      RegExp(r'\s+'),
+                                    ),
+                                  ],
+                                  keyboardType: TextInputType.visiblePassword,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              CommonButton(
+                                text: 'Delete Account',
+                                onPressed: () async {
+                                  try {
+                                    String email =
+                                        deleteAccountEmailController.text
+                                            .trim();
+
+                                    if (email.isEmpty || !email.isEmail) {
+                                      ToastHelper.showErrorToast(
+                                        'Please enter a valid email address',
+                                      );
+                                      return;
+                                    }
+
+                                    String password =
+                                        deleteAccountPasswordController.text
+                                            .trim();
+
+                                    if (password.isEmpty) {
+                                      ToastHelper.showErrorToast(
+                                        'Please enter your password',
+                                      );
+                                      return;
+                                    }
+
+                                    User? user =
+                                        FirebaseAuth.instance.currentUser;
+
+                                    if (user != null) {
+                                      // Step 1: Re-authenticate
+                                      AuthCredential credential =
+                                          EmailAuthProvider.credential(
+                                            email:
+                                                deleteAccountEmailController
+                                                    .text
+                                                    .trim(),
+                                            password:
+                                                deleteAccountPasswordController
+                                                    .text
+                                                    .trim(),
+                                          );
+                                      await user.reauthenticateWithCredential(
+                                        credential,
+                                      );
+
+                                      // Step 2: Delete the account
+                                      await user.delete();
+
+                                      // context.pop();
+                                      // await Future.delayed(const Duration(seconds: 1), () {
+                                      //   if (context.mounted) {
+
+                                      await FirebaseAuth.instance.signOut();
+
+                                      ToastHelper.showSuccessToast(
+                                        'Account deleted successfully.',
+                                      );
+
+                                      if (context.mounted) {
+                                        context.go('/login');
+                                      }
+                                    }
+                                  } on FirebaseAuthException catch (e) {
+                                    ToastHelper.showErrorToast(
+                                      e.message ?? 'Error deleting account',
+                                    );
+                                  } catch (e) {
+                                    ToastHelper.showErrorToast(
+                                      'Error deleting account: $e',
+                                    );
+                                  }
+                                },
+                                isPrimary: false,
+                                width: double.infinity,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+
+                  deleteAccountEmailController.clear();
+                  deleteAccountPasswordController.clear();
+                  deleteAccountPasswordVisible.value = false;
+                } else if (value == 'contact_us') {
+                  try {
+                    String? encodeQueryParameters(
+                      Map<String, String> params,
+                    ) => params.entries
+                        .map(
+                          (MapEntry<String, String> e) =>
+                              '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}',
+                        )
+                        .join('&');
+
+                    String email = "support@gmetimetracker.com";
+
+                    final Uri emailLaunchUri = Uri(
+                      scheme: 'mailto',
+                      path: email,
+                      query: encodeQueryParameters(<String, String>{
+                        'subject': 'Help & Support',
+                      }),
+                    );
+
+                    await launchUrl(
+                      emailLaunchUri,
+                      mode: LaunchMode.externalApplication,
+                    );
+                  } catch (e) {
+                    print(" Error: $e");
+                  }
                 }
               },
             )
@@ -253,3 +464,8 @@ class WebHeader extends StatelessWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => const Size.fromHeight(80);
 }
+
+TextEditingController deleteAccountEmailController = TextEditingController();
+TextEditingController deleteAccountPasswordController = TextEditingController();
+
+RxBool deleteAccountPasswordVisible = false.obs;
