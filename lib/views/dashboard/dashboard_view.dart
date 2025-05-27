@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gme_time_tracker/utils/constants_data.dart';
+import 'package:gme_time_tracker/widgets/common_confirm_dialog.dart';
 import 'package:go_router/go_router.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/toast_helper.dart';
@@ -20,15 +21,21 @@ class DashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ResponsiveLayout(
-      webBody: _WebDashboardView(),
-      mobileBody: _MobileDashboardView(),
+    return GetBuilder(
+      init: DashboardController(),
+      builder: (controller) {
+        return ResponsiveLayout(
+          webBody: _WebDashboardView(controller: controller),
+          mobileBody: _MobileDashboardView(controller: controller),
+        );
+      },
     );
   }
 }
 
 class _WebDashboardView extends StatelessWidget {
-  final controller = Get.put(DashboardController());
+  final DashboardController controller;
+  const _WebDashboardView({required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -172,7 +179,8 @@ class _SectionTitle extends StatelessWidget {
 }
 
 class _MobileDashboardView extends StatelessWidget {
-  final controller = Get.put(DashboardController());
+  final DashboardController controller;
+  const _MobileDashboardView({required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -207,11 +215,24 @@ class _MobileDashboardView extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
-              await FirebaseAuth.instance.signOut();
-              if (context.mounted) {
-                ToastHelper.showSuccessToast('Successfully logged out');
-                context.go('/login');
-              }
+              showDialog(
+                context: context,
+                builder:
+                    (context) => CommonConfirmDialog(
+                      title: 'Log Out',
+                      content: 'Are you sure you want to logout?',
+                      onConfirm: () async {
+                        await FirebaseAuth.instance.signOut();
+                        if (context.mounted) {
+                          ToastHelper.showSuccessToast(
+                            'Successfully logged out',
+                          );
+                          context.go('/login');
+                        }
+                      },
+                      confirmText: 'Logout',
+                    ),
+              );
             },
           ),
         ],
@@ -227,7 +248,7 @@ class _MobileDashboardView extends StatelessWidget {
             case 2:
               return SummaryView();
             case 3:
-              return const ProfileView();
+              return ProfileView();
             default:
               return _TrackingView();
           }
@@ -359,6 +380,7 @@ timerStartStopView(DashboardController controller) {
       Spacer(),
       Obx(() {
         return CommonButton(
+          isLoading: controller.isStartTrackingLoading.value,
           text: controller.isTracking.value ? 'Stop Timer' : 'Start Timer',
           onPressed:
               controller.isTracking.value
@@ -628,14 +650,17 @@ class ManualEntryForm extends StatelessWidget {
           maxLines: 3,
         ),
         const SizedBox(height: 24),
-        CommonButton(
-          text: 'Add Log Entry',
-          onPressed: () {
-            controller.addManualEntry(context, canBack);
-          },
-          isPrimary: true,
-          width: double.infinity,
-        ),
+        Obx(() {
+          return CommonButton(
+            isLoading: controller.isAddManualEntryLoading.value,
+            text: 'Add Log Entry',
+            onPressed: () {
+              controller.addManualEntry(context, canBack);
+            },
+            isPrimary: true,
+            width: double.infinity,
+          );
+        }),
         const SizedBox(height: 16),
       ],
     );
@@ -768,6 +793,7 @@ class DataView extends StatelessWidget {
                                         onPressed: () async {
                                           await controller.deleteActivity(
                                             rowData[e.key],
+                                            context,
                                           );
                                         },
                                         icon: Icon(

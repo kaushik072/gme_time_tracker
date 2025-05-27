@@ -1,6 +1,12 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:gme_time_tracker/routes/app_routes.dart';
+import 'package:gme_time_tracker/views/auth/view/login_view.dart';
 import 'package:gme_time_tracker/views/dashboard/controller/dashboard_controller.dart';
+import 'package:gme_time_tracker/widgets/common_button.dart';
+import 'package:gme_time_tracker/widgets/common_input_field.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../models/user_model.dart';
@@ -130,6 +136,134 @@ class ProfileController extends GetxController {
       ToastHelper.showErrorToast('Failed to update profile');
       return false;
     }
+  }
+
+  TextEditingController deleteAccountEmailController = TextEditingController();
+  TextEditingController deleteAccountPasswordController =
+      TextEditingController();
+
+  RxBool deleteAccountPasswordVisible = false.obs;
+
+  Future<void> showDeleteAccountDialog(BuildContext context) async {
+    context.pop();
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          insetPadding: const EdgeInsets.all(20),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Forgot password?',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => GoRouter.of(context).pop(),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                CommonTextField(
+                  controller: deleteAccountEmailController,
+                  hintText: 'Enter your email',
+                  inputFormatters: [
+                    FilteringTextInputFormatter.deny(RegExp(r'\s+')),
+                  ],
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 16),
+                Obx(
+                  () => CommonTextField(
+                    obscureText: deleteAccountPasswordVisible.value,
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        deleteAccountPasswordVisible.value =
+                            !deleteAccountPasswordVisible.value;
+                      },
+                      icon: Icon(
+                        deleteAccountPasswordVisible.value
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                    ),
+                    controller: deleteAccountPasswordController,
+                    hintText: 'Enter your password',
+                    inputFormatters: [
+                      FilteringTextInputFormatter.deny(RegExp(r'\s+')),
+                    ],
+                    keyboardType: TextInputType.visiblePassword,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                CommonButton(
+                  text: 'Delete Account',
+                  onPressed: () async {
+                    // try {
+                    User? user = FirebaseAuth.instance.currentUser;
+
+                    if (user != null) {
+                      // Step 1: Re-authenticate
+                      // AuthCredential credential = EmailAuthProvider.credential(
+                      // email: deleteAccountEmailController.text.trim(),
+                      // password: deleteAccountPasswordController.text.trim(),
+                      // );
+                      // await user.reauthenticateWithCredential(credential);
+
+                      // Step 2: Delete the account
+                      // await user.delete();
+
+                      // context.pop();
+                      // await Future.delayed(const Duration(seconds: 1), () {
+                      //   if (context.mounted) {
+                      ToastHelper.showSuccessToast(
+                        'Account deleted successfully.',
+                      );
+                      if (context.mounted) {
+                        context.go('/login');
+                      }
+
+                      // Get.offAllNamed("/login");
+
+                      // Navigator.pushAndRemoveUntil(
+                      // context,
+                      //   MaterialPageRoute(builder: (context) => const LoginView()),
+                      //   (route) => true,
+                      // );
+                    }
+                    // } on FirebaseAuthException catch (e) {
+                    //   ToastHelper.showErrorToast(e.message ?? 'Error deleting account');
+                    // } catch (e) {
+                    //   ToastHelper.showErrorToast('Error deleting account: $e');
+                    // }
+                  },
+                  isPrimary: false,
+                  width: double.infinity,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    deleteAccountEmailController.clear();
+    deleteAccountPasswordController.clear();
   }
 
   @override

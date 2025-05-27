@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:gme_time_tracker/widgets/common_confirm_dialog.dart'
+    show CommonConfirmDialog;
 import 'package:intl/intl.dart';
 import '../../../models/user_model.dart';
 import '../../../repositories/dashboard_repository.dart';
@@ -187,6 +189,8 @@ class DashboardController extends GetxController {
     });
   }
 
+  RxBool isStartTrackingLoading = false.obs;
+
   Future<void> startTracking() async {
     if (trackingActivityType.value.isEmpty) {
       ToastHelper.showErrorToast('Please select an activity type');
@@ -194,6 +198,8 @@ class DashboardController extends GetxController {
     }
 
     try {
+      isStartTrackingLoading.value = true;
+
       await _repository.startTracking(
         activityType: trackingActivityType.value,
         notes: trackingNotesController.text,
@@ -203,6 +209,8 @@ class DashboardController extends GetxController {
       ToastHelper.showSuccessToast('Timer started successfully');
     } catch (e) {
       ToastHelper.showErrorToast('Failed to start timer');
+    } finally {
+      isStartTrackingLoading.value = false;
     }
   }
 
@@ -211,6 +219,7 @@ class DashboardController extends GetxController {
     if (currentTrackingId.isEmpty) return;
 
     try {
+      isStartTrackingLoading.value = true;
       await _repository.stopTracking(currentTrackingId.value);
 
       isTracking.value = false;
@@ -221,6 +230,8 @@ class DashboardController extends GetxController {
       ToastHelper.showSuccessToast('Timer stopped successfully');
     } catch (e) {
       ToastHelper.showErrorToast('Failed to stop timer');
+    } finally {
+      isStartTrackingLoading.value = false;
     }
   }
 
@@ -235,6 +246,8 @@ class DashboardController extends GetxController {
       dateController.text = picked.toIso8601String().split('T')[0];
     }
   }
+
+  RxBool isAddManualEntryLoading = false.obs;
 
   Future<void> addManualEntry(BuildContext context, bool canBack) async {
     if (manualEntryActivityType.value.isEmpty ||
@@ -254,6 +267,7 @@ class DashboardController extends GetxController {
     }
 
     try {
+      isAddManualEntryLoading.value = true;
       await _repository.addManualEntry(
         activityType: manualEntryActivityType.value,
         date: DateTime.parse(dateController.text),
@@ -268,6 +282,7 @@ class DashboardController extends GetxController {
       print(e.toString());
       ToastHelper.showErrorToast('Failed to log activity');
     } finally {
+      isAddManualEntryLoading.value = false;
       clearManualEntryFields();
     }
   }
@@ -287,10 +302,21 @@ class DashboardController extends GetxController {
     return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
   }
 
-  Future<void> deleteActivity(String activityId) async {
+  Future<void> deleteActivity(String activityId, BuildContext context) async {
     try {
-      await _repository.deleteActivity(activityId);
-      ToastHelper.showSuccessToast('Activity deleted successfully');
+      showDialog(
+        context: context,
+        builder:
+            (context) => CommonConfirmDialog(
+              title: 'Delete Activity',
+              content: 'Are you sure you want to delete this activity?',
+              onConfirm: () async {
+                await _repository.deleteActivity(activityId);
+                ToastHelper.showSuccessToast('Activity deleted successfully');
+              },
+              confirmText: 'Delete',
+            ),
+      );
     } catch (e) {
       debugPrint('Error deleting activity: $e');
       ToastHelper.showErrorToast('Failed to delete activity');
@@ -409,13 +435,14 @@ class DashboardController extends GetxController {
       String status =
           paginatedActivities[i].status == 'in_progress'
               ? 'In progress'
-              : "Completed";
+              : "Completed";  
 
       String delete = paginatedActivities[i].id;
 
       data.add({
         "#": (((currentPage.value - 1) * limit) + (i + 1)).toString(),
-        "Date-Time": "$date\n$time",
+        // "Date-Time": "$date\n$time",
+        "Date-Time": date,
         "Activity": activity,
         "Duration": duration,
         "Notes": notes,

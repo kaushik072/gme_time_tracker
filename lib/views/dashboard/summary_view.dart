@@ -383,78 +383,78 @@ class SummaryView extends StatelessWidget {
 //   return byteData!.buffer.asUint8List();
 // }
 
-Future<Uint8List> renderWidgetToImage({
-  required Widget widget,
-  required double width,
-  required double height,
-  double pixelRatio = 3.0,
-}) async {
-  final repaintBoundary = RenderRepaintBoundary();
+// Future<Uint8List> renderWidgetToImage({
+//   required Widget widget,
+//   required double width,
+//   required double height,
+//   double pixelRatio = 3.0,
+// }) async {
+//   final repaintBoundary = RenderRepaintBoundary();
 
-  final renderView = RenderView(
-    configuration: ViewConfiguration(
-      logicalConstraints: BoxConstraints.tight(Size(width, height)),
-      devicePixelRatio: pixelRatio,
-    ),
-    view: WidgetsBinding.instance.platformDispatcher.views.first,
-    child: RenderPositionedBox(
-      alignment: Alignment.center,
-      child: repaintBoundary,
-    ),
-  );
+//   final renderView = RenderView(
+//     configuration: ViewConfiguration(
+//       logicalConstraints: BoxConstraints.tight(Size(width, height)),
+//       devicePixelRatio: pixelRatio,
+//     ),
+//     view: WidgetsBinding.instance.platformDispatcher.views.first,
+//     child: RenderPositionedBox(
+//       alignment: Alignment.center,
+//       child: repaintBoundary,
+//     ),
+//   );
 
-  final pipelineOwner = PipelineOwner();
-  final buildOwner = BuildOwner(focusManager: FocusManager());
-  pipelineOwner.rootNode = renderView;
+//   final pipelineOwner = PipelineOwner();
+//   final buildOwner = BuildOwner(focusManager: FocusManager());
+//   pipelineOwner.rootNode = renderView;
 
-  renderView.prepareInitialFrame();
+//   renderView.prepareInitialFrame();
 
-  final rootElement = RenderObjectToWidgetAdapter<RenderBox>(
-    container: repaintBoundary,
-    child: Directionality(
-      textDirection: TextDirection.ltr,
-      child: MediaQuery(
-        data: MediaQueryData(size: Size(width, height)),
-        child: widget,
-      ),
-    ),
-  ).attachToRenderTree(buildOwner);
+//   final rootElement = RenderObjectToWidgetAdapter<RenderBox>(
+//     container: repaintBoundary,
+//     child: Directionality(
+//       textDirection: TextDirection.ltr,
+//       child: MediaQuery(
+//         data: MediaQueryData(size: Size(width, height)),
+//         child: widget,
+//       ),
+//     ),
+//   ).attachToRenderTree(buildOwner);
 
-  // Perform build, layout, and paint
-  buildOwner.buildScope(rootElement);
-  buildOwner.finalizeTree();
+//   // Perform build, layout, and paint
+//   buildOwner.buildScope(rootElement);
+//   buildOwner.finalizeTree();
 
-  pipelineOwner.flushLayout();
-  pipelineOwner.flushCompositingBits();
-  pipelineOwner.flushPaint();
+//   pipelineOwner.flushLayout();
+//   pipelineOwner.flushCompositingBits();
+//   pipelineOwner.flushPaint();
 
-  // Let the microtasks complete
-  await Future.delayed(Duration(milliseconds: 20));
-  buildOwner.buildScope(rootElement);
-  buildOwner.finalizeTree();
-  pipelineOwner.flushLayout();
-  pipelineOwner.flushCompositingBits();
-  pipelineOwner.flushPaint();
+//   // Let the microtasks complete
+//   await Future.delayed(Duration(milliseconds: 20));
+//   buildOwner.buildScope(rootElement);
+//   buildOwner.finalizeTree();
+//   pipelineOwner.flushLayout();
+//   pipelineOwner.flushCompositingBits();
+//   pipelineOwner.flushPaint();
 
-  final image = await repaintBoundary.toImage(pixelRatio: pixelRatio);
-  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-  return byteData!.buffer.asUint8List();
-}
+//   final image = await repaintBoundary.toImage(pixelRatio: pixelRatio);
+//   final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+//   return byteData!.buffer.asUint8List();
+// }
 
-Future<Uint8List?> captureWidgetAsImage(
-  GlobalKey key, {
-  double pixelRatio = 3.0,
-}) async {
-  try {
-    RenderRepaintBoundary? boundary =
-        key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
-    if (boundary == null) return null;
+// Future<Uint8List?> captureWidgetAsImage(
+//   GlobalKey key, {
+//   double pixelRatio = 3.0,
+// }) async {
+//   try {
+//     RenderRepaintBoundary? boundary =
+//         key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+//     if (boundary == null) return null;
 
-    final image = await boundary.toImage(pixelRatio: pixelRatio);
-    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    return byteData?.buffer.asUint8List();
-  } catch (e) {
-    debugPrint('Error capturing image: $e');
-    return null;
-  }
-}
+//     final image = await boundary.toImage(pixelRatio: pixelRatio);
+//     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+//     return byteData?.buffer.asUint8List();
+//   } catch (e) {
+//     debugPrint('Error capturing image: $e');
+//     return null;
+//   }
+// }

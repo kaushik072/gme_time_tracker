@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:gme_time_tracker/utils/constants_data.dart';
 import 'package:go_router/go_router.dart';
@@ -64,7 +65,10 @@ class _WebSignUpView extends StatelessWidget {
                 ),
                 const SizedBox(height: 50),
                 _buildSignUpForm(
-                  onLogin: () => context.go(AppRoutes.login),
+                  onLogin: () {
+                    controller.clearAllControllers();
+                    context.go(AppRoutes.login);
+                  },
                   context: context,
                 ),
               ],
@@ -86,35 +90,46 @@ class _WebSignUpView extends StatelessWidget {
           children: [
             Expanded(
               child: CommonTextField(
-                controller: controller.firstNameController,
+                controller: controller.signupFirstNameController,
                 labelText: 'First Name',
                 hintText: 'Enter your first name',
+                inputFormatters: [
+                  FilteringTextInputFormatter.deny(RegExp(r'\s+')),
+                ],
+                keyboardType: TextInputType.name,
               ),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: CommonTextField(
-                controller: controller.lastNameController,
+                controller: controller.signupLastNameController,
                 labelText: 'Last Name',
                 hintText: 'Enter your last name',
+                inputFormatters: [
+                  FilteringTextInputFormatter.deny(RegExp(r'\s+')),
+                ],
+                keyboardType: TextInputType.name,
               ),
             ),
           ],
         ),
         const SizedBox(height: 16),
         CommonTextField(
-          controller: controller.emailController,
+          controller: controller.signupEmailController,
           labelText: 'Email',
-          hintText: 'your.email@example.com',
+          hintText: 'Enter your email',
           keyboardType: TextInputType.emailAddress,
+          inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s+'))],
         ),
         const SizedBox(height: 16),
         Obx(
           () => CommonTextField(
-            controller: controller.passwordController,
+            controller: controller.signupPasswordController,
             labelText: 'Password',
-            hintText: '••••••••',
+            hintText: 'Enter your password',
             obscureText: controller.obscurePassword.value,
+            keyboardType: TextInputType.visiblePassword,
+            inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s+'))],
             suffixIcon: IconButton(
               icon: Icon(
                 controller.obscurePassword.value
@@ -128,10 +143,12 @@ class _WebSignUpView extends StatelessWidget {
         const SizedBox(height: 16),
         Obx(
           () => CommonTextField(
-            controller: controller.confirmPasswordController,
+            controller: controller.signupConfirmPasswordController,
             labelText: 'Confirm Password',
-            hintText: '••••••••',
+            hintText: 'Enter your password',
             obscureText: controller.obscureConfirmPassword.value,
+            keyboardType: TextInputType.visiblePassword,
+            inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s+'))],
             suffixIcon: IconButton(
               icon: Icon(
                 controller.obscureConfirmPassword.value
@@ -144,51 +161,85 @@ class _WebSignUpView extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Obx(
-                () => CommonDropdownButton<String>(
-                  value:
-                      controller.selectedDegree.value.isEmpty
-                          ? null
-                          : controller.selectedDegree.value,
-                  labelText: 'Degree',
-                  hintText: 'Select Degree',
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'bachelor',
-                      child: Text('Bachelor'),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Obx(
+                    () => CommonDropdownButton<String>(
+                      value:
+                          controller.selectedDegree.value.isEmpty
+                              ? null
+                              : controller.selectedDegree.value,
+                      labelText: 'Degree',
+                      hintText: 'Select Degree',
+                      items: ConstantsData.instance.getDegreeItems(),
+                      onChanged: (value) {
+                        controller.otherDegreeController.clear();
+                        controller.selectedDegree.value = value ?? '';
+                        controller.isOtherDegree.value =
+                            (value == "others") ? true : false;
+                      },
                     ),
-                    DropdownMenuItem(value: 'master', child: Text('Master')),
-                    DropdownMenuItem(value: 'phd', child: Text('PhD')),
-                  ],
-                  onChanged:
-                      (value) => controller.selectedDegree.value = value ?? '',
-                ),
+                  ),
+                  Obx(
+                    () => Visibility(
+                      visible: controller.isOtherDegree.value,
+                      child: CommonTextField(
+                        controller: controller.otherDegreeController,
+                        hintText: "Enter degree name",
+                        inputFormatters: [
+                          FilteringTextInputFormatter.deny(RegExp(r'\s+')),
+                        ],
+                        keyboardType: TextInputType.name,
+                      ).paddingOnly(top: 5),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: Obx(
-                () => CommonDropdownButton<String>(
-                  value:
-                      controller.selectedPosition.value.isEmpty
-                          ? null
-                          : controller.selectedPosition.value,
-                  labelText: 'Position',
-                  hintText: 'Select Position',
-                  items: const [
-                    DropdownMenuItem(value: 'student', child: Text('Student')),
-                    DropdownMenuItem(
-                      value: 'professor',
-                      child: Text('Professor'),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Obx(
+                    () => CommonDropdownButton<String>(
+                      value:
+                          controller.selectedPosition.value.isEmpty
+                              ? null
+                              : controller.selectedPosition.value,
+                      labelText: 'Position',
+                      hintText: 'Select Position',
+                      items: ConstantsData.instance.getPositionItems(),
+                      onChanged: (value) {
+                        controller.otherPositionController.clear();
+                        controller.selectedPosition.value = value ?? '';
+                        controller.isOtherPosition.value =
+                            (value == "others") ? true : false;
+                      },
                     ),
-                    DropdownMenuItem(value: 'staff', child: Text('Staff')),
-                  ],
-                  onChanged:
-                      (value) =>
-                          controller.selectedPosition.value = value ?? '',
-                ),
+                  ),
+                  Obx(
+                    () => Visibility(
+                      visible: controller.isOtherPosition.value,
+                      child: CommonTextField(
+                        controller: controller.otherPositionController,
+                        hintText: "Enter position name",
+                        inputFormatters: [
+                          FilteringTextInputFormatter.deny(RegExp(r'\s+')),
+                        ],
+                        keyboardType: TextInputType.name,
+                      ).paddingOnly(top: 5),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -268,29 +319,36 @@ class _MobileSignUpView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CommonTextField(
-          controller: controller.firstNameController,
+          controller: controller.signupFirstNameController,
           labelText: 'First Name',
           hintText: 'Enter your first name',
+          inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s+'))],
+          keyboardType: TextInputType.name,
         ),
         const SizedBox(height: 16),
         CommonTextField(
-          controller: controller.lastNameController,
+          controller: controller.signupLastNameController,
           labelText: 'Last Name',
           hintText: 'Enter your last name',
+          inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s+'))],
+          keyboardType: TextInputType.name,
         ),
         const SizedBox(height: 16),
         CommonTextField(
-          controller: controller.emailController,
+          controller: controller.signupEmailController,
           labelText: 'Email',
-          hintText: 'your.email@example.com',
+          hintText: 'Enter your email',
+          inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s+'))],
           keyboardType: TextInputType.emailAddress,
         ),
         const SizedBox(height: 16),
         Obx(
           () => CommonTextField(
-            controller: controller.passwordController,
+            controller: controller.signupPasswordController,
             labelText: 'Password',
-            hintText: '••••••••',
+            hintText: 'Enter your password',
+            inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s+'))],
+            keyboardType: TextInputType.visiblePassword,
             obscureText: controller.obscurePassword.value,
             suffixIcon: IconButton(
               icon: Icon(
@@ -305,9 +363,11 @@ class _MobileSignUpView extends StatelessWidget {
         const SizedBox(height: 16),
         Obx(
           () => CommonTextField(
-            controller: controller.confirmPasswordController,
+            controller: controller.signupConfirmPasswordController,
             labelText: 'Confirm Password',
-            hintText: '••••••••',
+            hintText: 'Enter your password',
+            inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s+'))],
+            keyboardType: TextInputType.visiblePassword,
             obscureText: controller.obscureConfirmPassword.value,
             suffixIcon: IconButton(
               icon: Icon(
@@ -334,7 +394,6 @@ class _MobileSignUpView extends StatelessWidget {
               controller.selectedDegree.value = value ?? '';
               controller.isOtherDegree.value =
                   (value == "others") ? true : false;
-              print(value);
             },
           ),
         ),
@@ -344,6 +403,10 @@ class _MobileSignUpView extends StatelessWidget {
             child: CommonTextField(
               controller: controller.otherDegreeController,
               hintText: "Enter degree name",
+              inputFormatters: [
+                FilteringTextInputFormatter.deny(RegExp(r'\s+')),
+              ],
+              keyboardType: TextInputType.name,
             ).paddingOnly(top: 5),
           ),
         ),
@@ -362,7 +425,6 @@ class _MobileSignUpView extends StatelessWidget {
               controller.selectedPosition.value = value ?? '';
               controller.isOtherPosition.value =
                   (value == "others") ? true : false;
-              print(value);
             },
           ),
         ),
@@ -372,6 +434,10 @@ class _MobileSignUpView extends StatelessWidget {
             child: CommonTextField(
               controller: controller.otherPositionController,
               hintText: "Enter position name",
+              inputFormatters: [
+                FilteringTextInputFormatter.deny(RegExp(r'\s+')),
+              ],
+              keyboardType: TextInputType.name,
             ).paddingOnly(top: 5),
           ),
         ),
@@ -394,7 +460,10 @@ class _MobileSignUpView extends StatelessWidget {
               style: TextStyle(color: AppColors.textSecondary),
             ),
             TextButton(
-              onPressed: () => context.go(AppRoutes.login),
+              onPressed: () {
+                controller.clearAllControllers();
+                context.go(AppRoutes.login);
+              },
               child: const Text('Log in'),
             ),
           ],

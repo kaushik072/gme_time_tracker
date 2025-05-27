@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:gme_time_tracker/widgets/common_input_field.dart';
 import 'package:go_router/go_router.dart';
 import '../../../routes/app_routes.dart';
 import '../../../utils/app_colors.dart';
@@ -31,7 +33,7 @@ class _WebLoginView extends StatelessWidget {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(12),
           child: Container(
-              padding: const EdgeInsets.all(50),
+            padding: const EdgeInsets.all(50),
 
             decoration: BoxDecoration(
               // color: AppColors.surface,
@@ -63,7 +65,10 @@ class _WebLoginView extends StatelessWidget {
                 ),
                 const SizedBox(height: 50),
                 _buildLoginForm(
-                  onSignUp: () => context.go(AppRoutes.signUp),
+                  onSignUp: () {
+                    controller.clearAllControllers();
+                    context.go(AppRoutes.signUp);
+                  },
                   context: context,
                 ),
               ],
@@ -74,7 +79,10 @@ class _WebLoginView extends StatelessWidget {
     );
   }
 
-  Widget _buildLoginForm({required VoidCallback onSignUp, required BuildContext context}) {
+  Widget _buildLoginForm({
+    required VoidCallback onSignUp,
+    required BuildContext context,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -88,11 +96,13 @@ class _WebLoginView extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         TextField(
-          controller: controller.emailController,
+          controller: controller.loginEmailController,
           decoration: const InputDecoration(
-            hintText: 'your.email@example.com',
+            hintText: 'Enter your email',
             border: OutlineInputBorder(),
           ),
+          keyboardType: TextInputType.emailAddress,
+          inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s+'))],
         ),
         const SizedBox(height: 16),
         Row(
@@ -107,8 +117,8 @@ class _WebLoginView extends StatelessWidget {
               ),
             ),
             TextButton(
-              onPressed: () {
-                // TODO: Implement forgot password
+              onPressed: () async {
+                await controller.showForgotPasswordDialog(context);
               },
               child: const Text('Forgot password?'),
             ),
@@ -117,10 +127,12 @@ class _WebLoginView extends StatelessWidget {
         const SizedBox(height: 8),
         Obx(
           () => TextField(
-            controller: controller.passwordController,
+            controller: controller.loginPasswordController,
             obscureText: controller.obscurePassword.value,
+            keyboardType: TextInputType.visiblePassword,
+            inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s+'))],
             decoration: InputDecoration(
-              hintText: '••••••••',
+              hintText: 'Enter your password',
               border: const OutlineInputBorder(),
               suffixIcon: IconButton(
                 icon: Icon(
@@ -151,10 +163,7 @@ class _WebLoginView extends StatelessWidget {
               'Don\'t have an account?',
               style: TextStyle(color: AppColors.textSecondary),
             ),
-            TextButton(
-              onPressed: onSignUp,
-              child: const Text('Sign up'),
-            ),
+            TextButton(onPressed: onSignUp, child: const Text('Sign up')),
           ],
         ),
       ],
@@ -199,7 +208,10 @@ class _MobileLoginView extends StatelessWidget {
               ),
               const SizedBox(height: 32),
               _buildLoginForm(
-                onSignUp: () => context.go(AppRoutes.signUp),
+                onSignUp: () {
+                  controller.clearAllControllers();
+                  context.go(AppRoutes.signUp);
+                },
                 context: context,
               ),
             ],
@@ -209,7 +221,10 @@ class _MobileLoginView extends StatelessWidget {
     );
   }
 
-  Widget _buildLoginForm({required VoidCallback onSignUp, required BuildContext context}) {
+  Widget _buildLoginForm({
+    required VoidCallback onSignUp,
+    required BuildContext context,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -223,11 +238,13 @@ class _MobileLoginView extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         TextField(
-          controller: controller.emailController,
+          controller: controller.loginEmailController,
           decoration: const InputDecoration(
-            hintText: 'your.email@example.com',
+            hintText: 'Enter your email',
             border: OutlineInputBorder(),
           ),
+          keyboardType: TextInputType.emailAddress,
+          inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s+'))],
         ),
         const SizedBox(height: 16),
         Row(
@@ -242,8 +259,8 @@ class _MobileLoginView extends StatelessWidget {
               ),
             ),
             TextButton(
-              onPressed: () {
-                // TODO: Implement forgot password
+              onPressed: () async {
+                await controller.showForgotPasswordDialog(context);
               },
               child: const Text('Forgot password?'),
             ),
@@ -252,10 +269,12 @@ class _MobileLoginView extends StatelessWidget {
         const SizedBox(height: 8),
         Obx(
           () => TextField(
-            controller: controller.passwordController,
+            controller: controller.loginPasswordController,
             obscureText: controller.obscurePassword.value,
+            keyboardType: TextInputType.visiblePassword,
+            inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s+'))],
             decoration: InputDecoration(
-              hintText: '••••••••',
+              hintText: 'Enter your password',
               border: const OutlineInputBorder(),
               suffixIcon: IconButton(
                 icon: Icon(

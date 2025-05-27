@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -90,6 +92,14 @@ class ProfileView extends StatelessWidget {
                         },
                       );
                     }),
+                    Obx(
+                      () => Visibility(
+                        visible: controller.position.value == "others",
+                        child: CommonTextField(
+                          controller: controller.otherPositionController,
+                        ).paddingOnly(top: 5),
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     CommonTextField(
                       controller: controller.institutionController,
@@ -104,15 +114,6 @@ class ProfileView extends StatelessWidget {
                       hintText: 'Enter your specialty',
                     ),
                     const SizedBox(height: 16),
-
-                    Obx(
-                      () => Visibility(
-                        visible: controller.position.value == "others",
-                        child: CommonTextField(
-                          controller: controller.otherPositionController,
-                        ).paddingOnly(top: 5),
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -168,6 +169,15 @@ class ProfileView extends StatelessWidget {
                         ],
                       ),
             ),
+
+              const SizedBox(height: 16),
+              CommonButton(
+                text: 'Delete Account',
+                onPressed: () => controller.showDeleteAccountDialog(context),
+                width: double.infinity,
+                color: Colors.red,
+              ),
+            
           ],
         );
       },

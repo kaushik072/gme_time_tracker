@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gme_time_tracker/widgets/common_confirm_dialog.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../utils/app_colors.dart';
@@ -43,8 +44,8 @@ class WebHeader extends StatelessWidget implements PreferredSizeWidget {
                   ),
               child: Row(
                 children: [
-                  Image.asset('assets/logo.png', height: 40),
-                  const SizedBox(width: 12),
+                  Image.asset('assets/logo.png', height: 50),
+                  const SizedBox(width: 8),
                   Text(
                     AppStrings.appName,
                     style: const TextStyle(
@@ -115,11 +116,24 @@ class WebHeader extends StatelessWidget implements PreferredSizeWidget {
                   ],
               onSelected: (value) async {
                 if (value == 'logout') {
-                  await FirebaseAuth.instance.signOut();
-                  if (context.mounted) {
-                    ToastHelper.showSuccessToast('Successfully logged out');
-                    context.go('/login');
-                  }
+                  showDialog(
+                    context: context,
+                    builder:
+                        (context) => CommonConfirmDialog(
+                          title: 'Log Out',
+                          content: 'Are you sure you want to logout?',
+                          onConfirm: () async {
+                            await FirebaseAuth.instance.signOut();
+                            if (context.mounted) {
+                              ToastHelper.showSuccessToast(
+                                'Successfully logged out',
+                              );
+                              context.go('/login');
+                            }
+                          },
+                          confirmText: 'Logout',
+                        ),
+                  );
                 } else if (value == 'profile') {
                   if (context.mounted) {
                     showDialog(
@@ -129,10 +143,10 @@ class WebHeader extends StatelessWidget implements PreferredSizeWidget {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            child: Container(
+                            child: SizedBox(
                               width: 800,
-                              padding: const EdgeInsets.all(24),
                               child: SingleChildScrollView(
+                                padding: const EdgeInsets.all(24),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisAlignment: MainAxisAlignment.center,

@@ -58,7 +58,7 @@
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>We need permission to save files or images to your photo library, such as downloaded content or documents.</string>
 
-    <key>NSCameraUsageDescription</key>
+    <key>NSCameraUsageDescription</key>		
     <string>We need access to your camera so you can take pictures directly from the app.</string>
 
     <key>NSDocumentsFolderUsageDescription</key>
@@ -67,5 +67,10 @@
     <key>NSFileProviderDomainUsageDescription</key>
     <string>This permission allows the app to manage and access files stored on your device more efficiently.</string>
 
+    <key>UIFileSharingEnabled</key>
+    <true/>
+    <key>LSSupportsOpeningDocumentsInPlace</key>
+    <true/>
+    
 </dict>
 </plist>

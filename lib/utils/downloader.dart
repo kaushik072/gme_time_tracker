@@ -7,32 +7,38 @@ import 'package:permission_handler/permission_handler.dart';
 import 'toast_helper.dart';
 
 class Downloader {
-      static Future<void> downloadFile({required File file}) async {
+  static Future<void> downloadFile({required File file}) async {
     try {
-      if (await _requestStoragePermission()) {
-        // Get the Downloads directory
-        Directory? downloadsDir;
-
-        if (Platform.isAndroid) {
-          downloadsDir = Directory('/storage/emulated/0/Download');
-        } else {
-          downloadsDir = await getApplicationDocumentsDirectory();
-        }
-        if (!downloadsDir.existsSync()) {
-          downloadsDir.createSync(recursive: true);
-        }
-
-        final fileName = file.path.split('/').last;
-        final filePath = '${downloadsDir.path}/$fileName';
-
-        await file.copy(filePath);
-
-        ToastHelper.showSuccessToast("File saved to Downloads folder");
-      } else {
-        throw ("Storage permission denied");
+      // Request permission
+      if (!await _requestStoragePermission()) {
+        throw "Storage permission denied";
       }
+
+      // Determine download path
+      Directory? downloadsDir;
+
+      if (Platform.isAndroid) {
+        // Save to the public Downloads directory on Android
+        downloadsDir = Directory('/storage/emulated/0/Download');
+      } else if (Platform.isIOS) {
+        // Save to Documents directory, and make it visible to Files app
+        downloadsDir = await getApplicationDocumentsDirectory();
+      }
+
+      if (downloadsDir == null) {
+        throw "Downloads directory not found";
+      }
+
+      if (!downloadsDir.existsSync()) {
+        downloadsDir.createSync(recursive: true);
+      }
+
+      final fileName = file.path.split('/').last;
+      final filePath = '${downloadsDir.path}/$fileName';
+      await file.copy(filePath);
+
+      ToastHelper.showSuccessToast("File downloaded successfully");
     } catch (e) {
-      print(e);
       ToastHelper.showErrorToast("Download failed: $e");
     }
   }
@@ -40,15 +46,17 @@ class Downloader {
   static Future<bool> _requestStoragePermission() async {
     if (Platform.isAndroid) {
       final androidInfo = await DeviceInfoPlugin().androidInfo;
-      PermissionStatus status;
       if (androidInfo.version.sdkInt <= 32) {
-        status = await Permission.storage.request();
+        final status = await Permission.storage.request();
+        return status.isGranted;
       } else {
-        status = await Permission.photos.request();
+        final status = await Permission.photos.request(); // Scoped storage
+        return status.isGranted;
       }
-      return status.isGranted;
-    } else {
+    } else if (Platform.isIOS) {
+      // No need for storage permission on iOS
       return true;
     }
+    return false;
   }
 }

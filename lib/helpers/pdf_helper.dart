@@ -139,7 +139,7 @@ class PdfGenerator {
       graphics.drawString(
         copyrightText,
         PdfStandardFont(PdfFontFamily.helvetica, 10),
-        bounds: Rect.fromLTWH(0, pageSize.height - 15, pageSize.width, 20),
+        bounds: Rect.fromLTWH(0, pageSize.height - 10, pageSize.width, 20),
         format: PdfStringFormat(alignment: PdfTextAlignment.center),
       );
     }
@@ -494,7 +494,7 @@ class PdfGenerator {
           pageHeight -
           footerHeight -
           attestationBlockHeight +
-          5; // Reduced space above footer
+          20; // Reduced space above footer
 
       final PdfFont attestationFont = PdfStandardFont(
         PdfFontFamily.helvetica,
@@ -521,7 +521,7 @@ class PdfGenerator {
         signatureLine,
         signatureFont,
         brush: attestationBrush,
-        bounds: Rect.fromLTWH(0, attestationY + 26, pageWidth, 20),
+        bounds: Rect.fromLTWH(0, attestationY + 20, pageWidth, 20),
         format: PdfStringFormat(alignment: PdfTextAlignment.center),
       );
     }
@@ -609,10 +609,11 @@ class PdfGenerator {
     } else {
       final Directory dir = await getTemporaryDirectory();
 
-      final File file = await File('${dir.path}/$fileName.pdf').writeAsBytes(bytes);
+      final File file = await File(
+        '${dir.path}/$fileName.pdf',
+      ).writeAsBytes(bytes);
 
       await Downloader.downloadFile(file: file);
-
     }
   }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gme_time_tracker/widgets/web_footer.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:async';
 import '../../routes/app_routes.dart';
@@ -26,6 +27,7 @@ class _WebHomeView extends StatelessWidget {
     return Scaffold(
       appBar: const WebHeader(),
       body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
             // Hero Section
@@ -65,7 +67,7 @@ class _WebHomeView extends StatelessWidget {
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 80),
               child: SizedBox(
-                height: 220,
+                height: 240,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -88,7 +90,7 @@ class _WebHomeView extends StatelessWidget {
                 ),
               ),
             ),
-            // const SizedBox(height: 80),
+            const SizedBox(height: 80),
             // const WebFooter(),
           ],
         ),

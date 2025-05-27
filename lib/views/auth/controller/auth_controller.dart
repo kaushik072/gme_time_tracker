@@ -1,7 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:gme_time_tracker/repositories/auth_repository.dart';
 import 'package:gme_time_tracker/utils/toast_helper.dart';
+import 'package:gme_time_tracker/widgets/common_button.dart';
+import 'package:gme_time_tracker/widgets/common_input_field.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../routes/app_routes.dart';
@@ -9,13 +13,26 @@ import '../../../routes/app_routes.dart';
 class AuthController extends GetxController {
   final AuthRepository _authRepository = AuthRepository();
 
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-  final firstNameController = TextEditingController();
-  final lastNameController = TextEditingController();
-  final confirmPasswordController = TextEditingController();
+  final loginEmailController = TextEditingController();
+  final loginPasswordController = TextEditingController();
+  final signupEmailController = TextEditingController();
+  final signupPasswordController = TextEditingController();
+  final signupFirstNameController = TextEditingController();
+  final signupLastNameController = TextEditingController();
+  final signupConfirmPasswordController = TextEditingController();
   final otherDegreeController = TextEditingController();
   final otherPositionController = TextEditingController();
+
+  clearAllControllers() {
+    loginEmailController.clear();
+    loginPasswordController.clear();
+    signupFirstNameController.clear();
+    signupLastNameController.clear();
+    signupConfirmPasswordController.clear();
+    otherDegreeController.clear();
+    otherPositionController.clear();
+    forgotPasswordEmailController.clear();
+  }
 
   final selectedDegree = ''.obs;
   final selectedPosition = ''.obs;
@@ -34,21 +51,101 @@ class AuthController extends GetxController {
     obscureConfirmPassword.value = !obscureConfirmPassword.value;
   }
 
+  final forgotPasswordEmailController = TextEditingController();
+
+  Future<void> sendPasswordResetEmail(BuildContext context) async {
+    try {
+      String email = forgotPasswordEmailController.text.trim();
+      if (email.isEmpty || !email.isEmail) {
+        ToastHelper.showErrorToast('Please enter a valid email address');
+        return;
+      }
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      print("Password reset email sent to $email");
+      ToastHelper.showSuccessToast('Password reset email sent to $email');
+      GoRouter.of(context).pop();
+    } on FirebaseAuthException catch (e) {
+      ToastHelper.showErrorToast(e.message ?? 'An unexpected error occurred');
+    } catch (e) {
+      ToastHelper.showErrorToast('An unexpected error occurred');
+    }
+  }
+
+  Future<void> showForgotPasswordDialog(BuildContext context) async {
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          insetPadding: const EdgeInsets.all(20),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Forgot password?',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => GoRouter.of(context).pop(),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                CommonTextField(
+                  controller: forgotPasswordEmailController,
+                  hintText: 'Enter your email',
+                  inputFormatters: [
+                    FilteringTextInputFormatter.deny(RegExp(r'\s+')),
+                  ],
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 16),
+                CommonButton(
+                  text: 'Send',
+                  onPressed: () => sendPasswordResetEmail(context),
+                  isPrimary: true,
+                  width: double.infinity,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    forgotPasswordEmailController.clear();
+  }
+
   Future<void> login(BuildContext context) async {
     if (!_validateLoginFields()) return;
 
     try {
       isLoading.value = true;
       final userCredential = await _authRepository.signInWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text,
+        email: loginEmailController.text.trim(),
+        password: loginPasswordController.text.trim(),
       );
 
       if (userCredential.user != null) {
+        clearAllControllers();
         navigationToDashboard(context);
       }
+    } on FirebaseAuthException catch (e) {
+      ToastHelper.showErrorToast(e.message ?? 'An unexpected error occurred');
     } catch (e) {
-      debugPrint('Login error: $e');
       ToastHelper.showErrorToast('An unexpected error occurred');
     } finally {
       isLoading.value = false;
@@ -62,16 +159,16 @@ class AuthController extends GetxController {
       isLoading.value = true;
       final userCredential = await _authRepository
           .createUserWithEmailAndPassword(
-            email: emailController.text.trim(),
-            password: passwordController.text,
+            email: signupEmailController.text.trim(),
+            password: signupPasswordController.text.trim(),
           );
 
       if (userCredential.user != null) {
         await _authRepository.createUserDocument(
           uid: userCredential.user!.uid,
-          firstName: firstNameController.text.trim(),
-          lastName: lastNameController.text.trim(),
-          email: emailController.text.trim(),
+          firstName: signupFirstNameController.text.trim(),
+          lastName: signupLastNameController.text.trim(),
+          email: signupEmailController.text.trim(),
           degree:
               isOtherDegree.isTrue
                   ? otherDegreeController.text.trim()
@@ -81,11 +178,12 @@ class AuthController extends GetxController {
                   ? otherPositionController.text.trim()
                   : selectedPosition.value,
         );
-
+        clearAllControllers();
         navigationToDashboard(context);
       }
+    } on FirebaseAuthException catch (e) {
+      ToastHelper.showErrorToast(e.message ?? 'An unexpected error occurred');
     } catch (e) {
-      debugPrint('Signup error: $e');
       ToastHelper.showErrorToast('An unexpected error occurred');
     } finally {
       isLoading.value = false;
@@ -98,11 +196,12 @@ class AuthController extends GetxController {
   }
 
   bool _validateLoginFields() {
-    if (emailController.text.isEmpty || !emailController.text.isEmail) {
+    if (loginEmailController.text.isEmpty ||
+        !loginEmailController.text.isEmail) {
       ToastHelper.showErrorToast('Please enter a valid email address');
       return false;
     }
-    if (passwordController.text.isEmpty) {
+    if (loginPasswordController.text.isEmpty) {
       ToastHelper.showErrorToast('Please enter your password');
       return false;
     }
@@ -110,20 +209,22 @@ class AuthController extends GetxController {
   }
 
   bool _validateSignUpFields() {
-    if (firstNameController.text.isEmpty || lastNameController.text.isEmpty) {
+    if (signupFirstNameController.text.isEmpty ||
+        signupLastNameController.text.isEmpty) {
       ToastHelper.showErrorToast('Please enter your first and last name');
       return false;
     }
-    if (emailController.text.isEmpty || !emailController.text.isEmail) {
+    if (signupEmailController.text.isEmpty ||
+        !signupEmailController.text.isEmail) {
       ToastHelper.showErrorToast('Please enter a valid email address');
       return false;
     }
-    if (passwordController.text.isEmpty ||
-        confirmPasswordController.text.isEmpty) {
+    if (signupPasswordController.text.isEmpty ||
+        signupConfirmPasswordController.text.isEmpty) {
       ToastHelper.showErrorToast('Please enter and confirm your password');
       return false;
     }
-    if (passwordController.text != confirmPasswordController.text) {
+    if (signupPasswordController.text != signupConfirmPasswordController.text) {
       ToastHelper.showErrorToast('Passwords do not match');
       return false;
     }
@@ -144,11 +245,14 @@ class AuthController extends GetxController {
 
   @override
   void onClose() {
-    emailController.dispose();
-    passwordController.dispose();
-    firstNameController.dispose();
-    lastNameController.dispose();
-    confirmPasswordController.dispose();
+    loginEmailController.dispose();
+    loginPasswordController.dispose();
+    signupEmailController.dispose();
+    signupPasswordController.dispose();
+    signupFirstNameController.dispose();
+    signupLastNameController.dispose();
+    signupConfirmPasswordController.dispose();
+    forgotPasswordEmailController.dispose();
     super.onClose();
   }
 }
