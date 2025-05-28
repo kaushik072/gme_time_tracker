@@ -72,33 +72,35 @@ class _WebDashboardView extends StatelessWidget {
                           'Track your time spent on various activities in real-time',
                     ),
 
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            height: 525,
+                    IntrinsicHeight(
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              // height: 525,
 
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: AppColors.border),
-                              borderRadius: BorderRadius.circular(12),
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: AppColors.border),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: timerStartStopView(controller),
                             ),
-                            child: timerStartStopView(controller),
                           ),
-                        ),
-                        SizedBox(width: 24),
-                        Expanded(
-                          child: Container(
-                            height: 525,
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: AppColors.border),
-                              borderRadius: BorderRadius.circular(12),
+                          SizedBox(width: 24),
+                          Expanded(
+                            child: Container(
+                              // height: 525,
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: AppColors.border),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: ManualEntryForm(canBack: false),
                             ),
-                            child: ManualEntryForm(canBack: false),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
