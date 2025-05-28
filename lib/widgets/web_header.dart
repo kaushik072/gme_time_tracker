@@ -12,7 +12,6 @@ import '../routes/app_routes.dart';
 import '../views/profile/profile_view.dart';
 import 'common_button.dart';
 import 'common_input_field.dart';
-import 'dart:html' as html;
 
 class WebHeader extends StatelessWidget implements PreferredSizeWidget {
   final bool isDashboard;

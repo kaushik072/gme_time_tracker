@@ -5,6 +5,7 @@ import 'package:gme_time_tracker/utils/constants_data.dart';
 import 'package:gme_time_tracker/widgets/common_confirm_dialog.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/toast_helper.dart';
 import 'package:get/get.dart';
@@ -425,15 +426,29 @@ class _MobileDashboardView extends StatelessWidget {
                 deleteAccountPasswordVisible.value = false;
               } else if (value == 'contact_us') {
                 try {
-                  String email = "support@gmetimetracker.com";
-                  final Uri emailLaunchUri = Uri(scheme: 'mailto', path: email);
+                  String? encodeQueryParameters(
+                    Map<String, String> params,
+                  ) => params.entries
+                      .map(
+                        (MapEntry<String, String> e) =>
+                            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}',
+                      )
+                      .join('&');
 
-                  bool res = await launchUrl(
-                    emailLaunchUri,
-                    mode: LaunchMode.platformDefault,
+                  String email = "support@gmetimetracker.com";
+
+                  final Uri emailLaunchUri = Uri(
+                    scheme: 'mailto',
+                    path: email,
+                    query: encodeQueryParameters(<String, String>{
+                      'subject': 'Help & Support',
+                    }),
                   );
 
-                  print("res: $res");
+                  await launchUrl(
+                    emailLaunchUri,
+                    mode: LaunchMode.externalApplication,
+                  );
                 } catch (e) {
                   print(" Error: $e");
                 }
