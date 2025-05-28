@@ -313,6 +313,7 @@ class DashboardController extends GetxController {
               onConfirm: () async {
                 await _repository.deleteActivity(activityId);
                 ToastHelper.showSuccessToast('Activity deleted successfully');
+                context.pop();
               },
               confirmText: 'Delete',
             ),
