@@ -1,62 +1,111 @@
 import 'dart:io';
-
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-
-import 'toast_helper.dart';
+import 'package:media_store_plus/media_store_plus.dart';
+import 'package:gme_time_tracker/utils/toast_helper.dart';
 
 class Downloader {
-  static Future<void> downloadFile({required File file}) async {
+  static final MediaStore _mediaStore = MediaStore();
+
+  static Future<bool> _requestPermissions() async {
+    if (Platform.isAndroid) {
+      final sdk = await _mediaStore.getPlatformSDKInt();
+      if (sdk <= 28) {
+        final status = await Permission.storage.request();
+        return status.isGranted;
+      }
+      return true;
+    }
+    return true;
+  }
+
+  static Future<void> saveFileToDownloads({required File file}) async {
+    if (!await _requestPermissions()) {
+      ToastHelper.showErrorToast("Please grant storage permission");
+      return;
+    }
+
+    if (!await file.exists()) {
+      ToastHelper.showErrorToast("Source file does not exist");
+      return;
+    }
+
     try {
-      // Request permission
-      if (!await _requestStoragePermission()) {
-        throw "Storage permission denied";
-      }
-
-      // Determine download path
-      Directory? downloadsDir;
-
       if (Platform.isAndroid) {
-        // Save to the public Downloads directory on Android
-        downloadsDir = Directory('/storage/emulated/0/Download');
+        await _saveFileToAndroidDownloads(file);
       } else if (Platform.isIOS) {
-        // Save to Documents directory, and make it visible to Files app
-        downloadsDir = await getApplicationDocumentsDirectory();
+        await _saveFileToIOSDocuments(file);
+      } else {
+        ToastHelper.showErrorToast("Unsupported platform");
+        return;
       }
-
-      if (downloadsDir == null) {
-        throw "Downloads directory not found";
-      }
-
-      if (!downloadsDir.existsSync()) {
-        downloadsDir.createSync(recursive: true);
-      }
-
-      final fileName = file.path.split('/').last;
-      final filePath = '${downloadsDir.path}/$fileName';
-      await file.copy(filePath);
-
-      ToastHelper.showSuccessToast("File downloaded successfully");
+      ToastHelper.showSuccessToast("File saved successfully");
     } catch (e) {
-      ToastHelper.showErrorToast("Download failed: $e");
+      ToastHelper.showErrorToast("Failed to save file");
     }
   }
 
-  static Future<bool> _requestStoragePermission() async {
-    if (Platform.isAndroid) {
-      final androidInfo = await DeviceInfoPlugin().androidInfo;
-      if (androidInfo.version.sdkInt <= 32) {
-        final status = await Permission.storage.request();
-        return status.isGranted;
-      } else {
-        final status = await Permission.photos.request(); // Scoped storage
-        return status.isGranted;
+  static Future<void> _saveFileToAndroidDownloads(File sourceFile) async {
+    MediaStore.appFolder = "GME Time Tracker";
+
+    String extension = sourceFile.path.split('.').last;
+    String originalName = sourceFile.path.split('/').last.split('.').first;
+
+    int candidateIndex = 0;
+    while (true) {
+      final doesExist = await _mediaStore.isFileExist(
+        dirType: DirType.download,
+        fileName:
+            "$originalName${candidateIndex > 0 ? " ($candidateIndex)" : ""}.$extension",
+        dirName: DirType.download.defaults,
+      );
+
+      if (doesExist) {
+        candidateIndex++;
+        continue;
       }
-    } else if (Platform.isIOS) {
-      // No need for storage permission on iOS
-      return true;
+
+      String tempPath;
+
+      if (candidateIndex == 0) {
+        tempPath = sourceFile.path;
+      } else {
+        final tempDir = await getTemporaryDirectory();
+        tempPath =
+            '${tempDir.path}/$originalName${candidateIndex > 0 ? " ($candidateIndex)" : ""}.$extension';
+        await sourceFile.copy(tempPath);
+      }
+
+      await _mediaStore.saveFile(
+        dirType: DirType.download,
+        tempFilePath: tempPath,
+        dirName: DirType.download.defaults,
+      );
+
+      return;
     }
-    return false;
+  }
+
+  static Future<void> _saveFileToIOSDocuments(File sourceFile) async {
+    final docsDir = await getApplicationDocumentsDirectory();
+
+    String extension = sourceFile.path.split('.').last;
+    String originalName = sourceFile.path.split('/').last.split('.').first;
+
+    int candidateIndex = 0;
+
+    while (true) {
+      final targetPath =
+          '${docsDir.path}/$originalName${candidateIndex > 0 ? " ($candidateIndex)" : ""}.$extension';
+      final targetFile = File(targetPath);
+
+      if (await targetFile.exists()) {
+        candidateIndex++;
+        continue;
+      }
+
+      await sourceFile.copy(targetPath);
+      return;
+    }
   }
 }

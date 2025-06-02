@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gme_time_tracker/firebase_options.dart';
 import 'package:gme_time_tracker/utils/constants_data.dart';
+import 'package:media_store_plus/media_store_plus.dart';
 import 'package:toastification/toastification.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'routes/app_routes.dart';
@@ -18,10 +21,11 @@ Future<void> main() async {
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Initialize ConstantsData and wait for it to complete
   final constantsData = Get.put(ConstantsData());
   await constantsData.init();
-
+  if(Platform.isAndroid) {
+    await MediaStore.ensureInitialized();
+  }
   runApp(const MyApp());
 }
 
@@ -49,7 +53,6 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-        // getPages: AppRoutes.pages,
         routeInformationParser: AppRoutes.router.routeInformationParser,
         routeInformationProvider: AppRoutes.router.routeInformationProvider,
         routerDelegate: AppRoutes.router.routerDelegate,

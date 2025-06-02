@@ -47,7 +47,7 @@ class PdfGenerator {
       ..sort((a, b) => b.durationMinutes.compareTo(a.durationMinutes));
   }
 
-  static Future<dynamic> generateUserActivityPDF({
+  static Future<dynamic>    generateUserActivityPDF({
     required Map<String, dynamic> userDetails,
     required List<ActivityModel> activityList,
     required Uint8List logoBytes,
@@ -613,7 +613,7 @@ class PdfGenerator {
         '${dir.path}/$fileName.pdf',
       ).writeAsBytes(bytes);
 
-      await Downloader.downloadFile(file: file);
+      await Downloader.saveFileToDownloads(file: file);
     }
   }
 

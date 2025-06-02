@@ -11,12 +11,6 @@ class DashboardRepository {
     databaseId: 'gmetimetracker',
   );
 
-  //   final database = FirebaseDatabase.instanceFor(
-  // final database = FirebaseDatabase.instanceFor(
-  //   app: Firebase.app(),
-  //   databaseURL: 'https://gme-time-tracker-nam5.firebaseio.com',
-  // );
-
   Future<void> startTracking({
     required String activityType,
     String? notes,
@@ -122,19 +116,6 @@ class DashboardRepository {
       'specialty': specialty,
     });
   }
-  // Future<Map<String, dynamic>?> fetchUserData(String userId) async {
-  //   try {
-  //     final userDoc = await _firestore.collection('users').doc(userId).get();
-  //     if (userDoc.exists) {
-  //       return userDoc.data() as Map<String, dynamic>;
-  //     }
-  //     return null;
-  //   } catch (e) {
-  //     debugPrint('Error fetching user data: $e');
-  //     return null;
-  //   }
-  // }
-
   //create user stream
 
   Stream<UserModel?> getUserStream(String userId) {
