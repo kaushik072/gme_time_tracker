@@ -25,10 +25,10 @@ class UserModel {
       firstName: json['firstName'] as String,
       lastName: json['lastName'] as String,
       email: json['email'] as String,
-      degree: json['degree']?.toLowerCase() as String,
-      position: json['position']?.toLowerCase() as String,
-      institution: json['institution']?.toLowerCase() as String?,
-      specialty: json['specialty']?.toLowerCase() as String?,
+      degree: json['degree'] as String,
+      position: json['position'] as String,
+      institution: json['institution'] as String?,
+      specialty: json['specialty'] as String?,
     );
   }
 

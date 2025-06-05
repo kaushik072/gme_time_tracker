@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../utils/constants_data.dart';
 import '../../widgets/common_button.dart';
 import '../../widgets/common_input_field.dart';
 import 'controller/profile_controller.dart';
@@ -62,19 +63,15 @@ class ProfileView extends StatelessWidget {
                         labelText: 'Degree',
                         hintText: 'Select Degree',
                         value: controller.degree.value,
-                        items: controller.degreeItems,
+                        items: ConstantsData.instance.getDegreeItems(),
                         onChanged: (value) {
                           controller.degree.value = value ?? '';
-                          print(
-                            "controller.degree.value: ${controller.degree.value}",
-                          );
-                          print("value: $value");
                         },
                       );
                     }),
                     Obx(
                       () => Visibility(
-                        visible: controller.degree.value == "others",
+                        visible: controller.degree.value == "Other",
                         child: CommonTextField(
                           controller: controller.otherDegreeController,
                         ).paddingOnly(top: 5),
@@ -86,7 +83,7 @@ class ProfileView extends StatelessWidget {
                         labelText: 'Position',
                         hintText: 'Select Position',
                         value: controller.position.value,
-                        items: controller.positionItems,
+                        items: ConstantsData.instance.getPositionItems(),
                         onChanged: (value) {
                           controller.position.value = value ?? '';
                         },
@@ -94,7 +91,7 @@ class ProfileView extends StatelessWidget {
                     }),
                     Obx(
                       () => Visibility(
-                        visible: controller.position.value == "others",
+                        visible: controller.position.value == "Other",
                         child: CommonTextField(
                           controller: controller.otherPositionController,
                         ).paddingOnly(top: 5),

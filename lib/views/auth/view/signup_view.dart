@@ -182,7 +182,7 @@ class _WebSignUpView extends StatelessWidget {
                         controller.otherDegreeController.clear();
                         controller.selectedDegree.value = value ?? '';
                         controller.isOtherDegree.value =
-                            (value == "others") ? true : false;
+                            (value == "Other") ? true : false;
                       },
                     ),
                   ),
@@ -222,7 +222,7 @@ class _WebSignUpView extends StatelessWidget {
                         controller.otherPositionController.clear();
                         controller.selectedPosition.value = value ?? '';
                         controller.isOtherPosition.value =
-                            (value == "others") ? true : false;
+                            (value == "Other") ? true : false;
                       },
                     ),
                   ),
@@ -393,7 +393,7 @@ class _MobileSignUpView extends StatelessWidget {
               controller.otherDegreeController.clear();
               controller.selectedDegree.value = value ?? '';
               controller.isOtherDegree.value =
-                  (value == "others") ? true : false;
+                  (value == "Other") ? true : false;
             },
           ),
         ),
@@ -424,7 +424,7 @@ class _MobileSignUpView extends StatelessWidget {
               controller.otherPositionController.clear();
               controller.selectedPosition.value = value ?? '';
               controller.isOtherPosition.value =
-                  (value == "others") ? true : false;
+                  (value == "Other") ? true : false;
             },
           ),
         ),

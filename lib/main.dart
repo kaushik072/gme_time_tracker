@@ -23,7 +23,7 @@ Future<void> main() async {
 
   final constantsData = Get.put(ConstantsData());
   await constantsData.init();
-  if(Platform.isAndroid) {
+  if (!kIsWeb) {
     await MediaStore.ensureInitialized();
   }
   runApp(const MyApp());

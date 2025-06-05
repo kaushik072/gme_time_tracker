@@ -1,12 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:gme_time_tracker/routes/app_routes.dart';
-import 'package:gme_time_tracker/views/auth/view/login_view.dart';
 import 'package:gme_time_tracker/views/dashboard/controller/dashboard_controller.dart';
-import 'package:gme_time_tracker/widgets/common_button.dart';
-import 'package:gme_time_tracker/widgets/common_input_field.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../models/user_model.dart';
@@ -28,13 +22,10 @@ class ProfileController extends GetxController {
   Rx<String?> degree = Rx<String?>(null);
   Rx<String?> position = Rx<String?>(null);
 
-  late final List<DropdownMenuItem<String>> degreeItems;
-  late final List<DropdownMenuItem<String>> positionItems;
   @override
   void onInit() {
     super.onInit();
-    degreeItems = ConstantsData.instance.getDegreeItems();
-    positionItems = ConstantsData.instance.getPositionItems();
+
     setUserData();
   }
 
@@ -42,46 +33,34 @@ class ProfileController extends GetxController {
     UserModel? user = dashboardController.user.value;
     firstNameController.text = user?.firstName ?? '';
     lastNameController.text = user?.lastName ?? '';
-
     emailController.text = user?.email ?? '';
     institutionController.text = user?.institution ?? '';
     specialtyController.text = user?.specialty ?? '';
-
-    degree.value = getDegree()?.toLowerCase().trim();
-    // degree.value = user?.degree.toLowerCase().trim();
-
-    position.value = getPosition()?.toLowerCase().trim();
-    // position.value = user?.position.toLowerCase().trim();
-  }
-
-  String? getDegree() {
-    String? degree;
-    for (var element in ConstantsData.instance.degrees) {
-      UserModel? user = dashboardController.user.value;
-      if (element.toLowerCase() == user?.degree) {
-        degree = user?.degree;
-        break;
-      } else {
-        degree = "Others";
-        otherDegreeController.text = user?.degree.capitalizeFirst ?? '';
-      }
+    degree.value = user?.degree;
+    position.value = user?.position;
+    bool isDegreeOther = ConstantsData.instance.degrees.contains(degree.value);
+    if (!isDegreeOther) {
+      degree.value = "Other";
+      otherDegreeController.text = user?.degree ?? '';
+    } else {
+      otherDegreeController.text = '';
+      degree.value = user?.degree;
     }
-    return degree;
-  }
 
-  String? getPosition() {
-    String? position;
-    for (var element in ConstantsData.instance.positions) {
-      UserModel? user = dashboardController.user.value;
-      if (element.toLowerCase() == user?.position) {
-        position = user?.position;
-        break;
-      } else {
-        position = "Others";
-        otherPositionController.text = user?.position.capitalizeFirst ?? '';
-      }
+    print(ConstantsData.instance.positions);
+    print(user?.position);
+
+    bool isPositionOther = ConstantsData.instance.positions.contains(
+      position.value,
+    );
+    print(isPositionOther);
+    if (!isPositionOther) {
+      position.value = "Other";
+      otherPositionController.text = user?.position ?? '';
+    } else {
+      otherPositionController.text = '';
+      position.value = user?.position;
     }
-    return position;
   }
 
   void startEditing() {
@@ -113,22 +92,36 @@ class ProfileController extends GetxController {
       }
     }
     try {
+      String otherDegree = otherDegreeController.text.trim();
+      String otherPosition = otherPositionController.text.trim();
+      String specialty = specialtyController.text.trim();
+      String institution = institutionController.text.trim();
+
+      if (specialty.isNotEmpty) {
+        specialty = specialty[0].toUpperCase() + specialty.substring(1);
+      }
+      if (institution.isNotEmpty) {
+        institution = institution[0].toUpperCase() + institution.substring(1);
+      }
+      if (otherDegree.isNotEmpty) {
+        otherDegree = otherDegree[0].toUpperCase() + otherDegree.substring(1);
+      }
+      if (otherPosition.isNotEmpty) {
+        otherPosition =
+            otherPosition[0].toUpperCase() + otherPosition.substring(1);
+      }
+
       bool isUpdated = await dashboardController.updateUser(
         firstName: firstNameController.text.trim(),
         lastName: lastNameController.text.trim(),
-        degree:
-            degree.value == "others"
-                ? otherDegreeController.text
-                : degree.value,
-        position:
-            position.value == "others"
-                ? otherPositionController.text
-                : position.value,
-        institution: institutionController.text.trim(),
-        specialty: specialtyController.text.trim(),
+        degree: degree.value == "Other" ? otherDegree : degree.value,
+        position: position.value == "Other" ? otherPosition : position.value,
+        institution: institution,
+        specialty: specialty,
       );
+
       isEditing.value = false;
-      await Future.delayed(const Duration(seconds: 1), () {
+      Future.delayed(const Duration(seconds: 1), () {
         setUserData();
       });
       return isUpdated;

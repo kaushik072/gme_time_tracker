@@ -70,9 +70,10 @@ class SummaryView extends StatelessWidget {
                     return CommonDropdownButton<int>(
                       value: controller.selectedYear.value,
                       items:
-                          List<int>.generate(5, (i) => currentYear - i).map((
-                            int year,
-                          ) {
+                          List<int>.generate(
+                            currentYear - 2024,
+                            (i) => currentYear - i,
+                          ).map((int year) {
                             return DropdownMenuItem<int>(
                               value: year,
                               child: Text(year.toString()),
@@ -100,7 +101,7 @@ class SummaryView extends StatelessWidget {
                     final Uint8List logoBytes = logoData.buffer.asUint8List();
 
                     final Map<String, dynamic> userDetails = {
-                      'Name': user?.firstName ?? '',
+                      'Name': user?.firstName.capitalizeFirst ?? '',
                       'Email': user?.email ?? '',
                       'Position': user?.position ?? '',
                       'Degree': user?.degree ?? '',

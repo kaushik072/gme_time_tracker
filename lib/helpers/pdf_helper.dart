@@ -47,7 +47,7 @@ class PdfGenerator {
       ..sort((a, b) => b.durationMinutes.compareTo(a.durationMinutes));
   }
 
-  static Future<dynamic>    generateUserActivityPDF({
+  static Future<dynamic> generateUserActivityPDF({
     required Map<String, dynamic> userDetails,
     required List<ActivityModel> activityList,
     required Uint8List logoBytes,
@@ -483,52 +483,10 @@ class PdfGenerator {
 
     const int rowsPerPage = 15; // Show 15 entries per page
     final int totalPages = (activityList.length / rowsPerPage).ceil();
-
-    // --- Attestation block for first page ---
-    {
-      final double pageHeight = firstPage.getClientSize().height;
-      final double pageWidth = firstPage.getClientSize().width;
-      final double footerHeight = 30;
-      final double attestationBlockHeight = 50;
-      final double attestationY =
-          pageHeight -
-          footerHeight -
-          attestationBlockHeight +
-          20; // Reduced space above footer
-
-      final PdfFont attestationFont = PdfStandardFont(
-        PdfFontFamily.helvetica,
-        13,
-      );
-      final PdfFont signatureFont = PdfStandardFont(
-        PdfFontFamily.helvetica,
-        13,
-        style: PdfFontStyle.bold,
-      );
-      final PdfBrush attestationBrush = PdfSolidBrush(sectionTitleColor);
-      final String name = userDetails['Name']?.toString().trim() ?? 'N/A';
-      final String degree = userDetails['Degree']?.toString().trim() ?? 'N/A';
-      final String signatureLine = '$name, $degree';
-
-      firstPage.graphics.drawString(
-        'I hereby certify that the above time logs are accurate and true to the best of my knowledge and belief.',
-        attestationFont,
-        brush: attestationBrush,
-        bounds: Rect.fromLTWH(0, attestationY, pageWidth, 20),
-        format: PdfStringFormat(alignment: PdfTextAlignment.center),
-      );
-      firstPage.graphics.drawString(
-        signatureLine,
-        signatureFont,
-        brush: attestationBrush,
-        bounds: Rect.fromLTWH(0, attestationY + 20, pageWidth, 20),
-        format: PdfStringFormat(alignment: PdfTextAlignment.center),
-      );
-    }
-
+    PdfPage? page;
     // --- Table rendering ---
     for (int pageIndex = 0; pageIndex < totalPages; pageIndex++) {
-      final PdfPage page = (pageIndex == 0) ? tablePage : document.pages.add();
+      page = (pageIndex == 0) ? tablePage : document.pages.add();
       if (pageIndex != 0) {
         drawHeaderFooter(page);
         tableYOffset = 75 + sectionMargin + 30;
@@ -536,11 +494,21 @@ class PdfGenerator {
 
       PdfGrid grid = PdfGrid();
       grid.columns.add(count: 4);
+      grid.columns[0].width = 75;
+      grid.columns[1].width = 150;
+      grid.columns[2].width = 55;
+      grid.columns[3].width = 175;
       grid.headers.add(1);
       PdfGridRow header = grid.headers[0];
       header.cells[0].value = 'Date';
+      header.cells[0].stringFormat = PdfStringFormat(
+        alignment: PdfTextAlignment.center,
+      );
+
       header.cells[1].value = 'Activity Name';
+
       header.cells[2].value = 'Duration';
+
       header.cells[3].value = 'Description';
 
       int start = pageIndex * rowsPerPage;
@@ -559,8 +527,13 @@ class PdfGenerator {
             displayDate != null
                 ? DateFormat('yyyy-MM-dd').format(displayDate)
                 : 'N/A';
+        header.cells[0].stringFormat = PdfStringFormat(
+          alignment: PdfTextAlignment.center,
+        );
+
         row.cells[1].value = activity.activityType;
         row.cells[2].value = _formatDuration(activity.durationMinutes);
+
         row.cells[3].value = (activity.notes ?? '');
       }
 
@@ -590,6 +563,48 @@ class PdfGenerator {
           page.getClientSize().width - 2 * cardX,
           500,
         ),
+      );
+    }
+
+    // --- Attestation block for first page ---
+    {
+      final double pageHeight = firstPage.getClientSize().height;
+      final double pageWidth = firstPage.getClientSize().width;
+      final double footerHeight = 30;
+      final double attestationBlockHeight = 50;
+      final double attestationY =
+          pageHeight -
+          footerHeight -
+          attestationBlockHeight +
+          5; // Reduced space above footer
+
+      final PdfFont attestationFont = PdfStandardFont(
+        PdfFontFamily.helvetica,
+        13,
+      );
+      final PdfFont signatureFont = PdfStandardFont(
+        PdfFontFamily.helvetica,
+        13,
+        style: PdfFontStyle.bold,
+      );
+      final PdfBrush attestationBrush = PdfSolidBrush(sectionTitleColor);
+      final String name = userDetails['Name']?.toString().trim() ?? 'N/A';
+      final String degree = userDetails['Degree']?.toString().trim() ?? 'N/A';
+      final String signatureLine = '$name, $degree';
+
+      page?.graphics.drawString(
+        'I hereby certify that the above time logs are accurate and true to the best of my knowledge.',
+        attestationFont,
+        brush: attestationBrush,
+        bounds: Rect.fromLTWH(0, attestationY, pageWidth, 35),
+        format: PdfStringFormat(alignment: PdfTextAlignment.center),
+      );
+      page?.graphics.drawString(
+        signatureLine,
+        signatureFont,
+        brush: attestationBrush,
+        bounds: Rect.fromLTWH(0, attestationY + 35, pageWidth, 20),
+        format: PdfStringFormat(alignment: PdfTextAlignment.center),
       );
     }
 

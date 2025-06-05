@@ -40,22 +40,15 @@ class ConstantsData extends GetxController {
   List<DropdownMenuItem<String>> getPositionItems() {
     return positions
         .map(
-          (position) => DropdownMenuItem(
-            value: position.toLowerCase(),
-            child: Text(position),
-          ),
+          (position) =>
+              DropdownMenuItem(value: position, child: Text(position)),
         )
         .toList();
   }
 
   List<DropdownMenuItem<String>> getDegreeItems() {
     return degrees
-        .map(
-          (degree) => DropdownMenuItem(
-            value: degree.toLowerCase(),
-            child: Text(degree),
-          ),
-        )
+        .map((degree) => DropdownMenuItem(value: degree, child: Text(degree)))
         .toList();
   }
 

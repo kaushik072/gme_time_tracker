@@ -164,19 +164,26 @@ class AuthController extends GetxController {
           );
 
       if (userCredential.user != null) {
+        String otherDegree = otherDegreeController.text.trim();
+        String otherPosition = otherPositionController.text.trim();
+
+        if (otherDegree.isNotEmpty) {
+          otherDegree = otherDegree[0].toUpperCase() + otherDegree.substring(1);
+        }
+
+        if (otherPosition.isNotEmpty) {
+          otherPosition =
+              otherPosition[0].toUpperCase() + otherPosition.substring(1);
+        }
+
         await _authRepository.createUserDocument(
           uid: userCredential.user!.uid,
           firstName: signupFirstNameController.text.trim(),
           lastName: signupLastNameController.text.trim(),
           email: signupEmailController.text.trim(),
-          degree:
-              isOtherDegree.isTrue
-                  ? otherDegreeController.text.trim()
-                  : selectedDegree.value,
+          degree: isOtherDegree.isTrue ? otherDegree : selectedDegree.value,
           position:
-              isOtherPosition.isTrue
-                  ? otherPositionController.text.trim()
-                  : selectedPosition.value,
+              isOtherPosition.isTrue ? otherPosition : selectedPosition.value,
         );
         clearAllControllers();
         navigationToDashboard(context);
