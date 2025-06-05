@@ -32,7 +32,7 @@ class SummaryController extends GetxController {
 
   // Get total time for the selected month
   String get totalTime {
-    final monthActivities = _getActivitiesForSelectedMonth();
+    final monthActivities = getActivitiesForSelectedMonth();
     final totalMinutes = monthActivities.fold<int>(
       0,
       (sum, activity) => sum + (activity.durationMinutes),
@@ -44,7 +44,7 @@ class SummaryController extends GetxController {
 
   // Get activities distribution data for pie chart
   List<ActivityDistribution> getActivityDistribution() {
-    final monthActivities = _getActivitiesForSelectedMonth();
+    final monthActivities = getActivitiesForSelectedMonth();
     final Map<String, int> distribution = {};
 
     for (final activity in monthActivities) {
@@ -67,7 +67,7 @@ class SummaryController extends GetxController {
 
   // Get daily activity data for bar chart
   List<DailyActivity> getDailyActivity() {
-    final monthActivities = _getActivitiesForSelectedMonth();
+    final monthActivities = getActivitiesForSelectedMonth();
     final Map<DateTime, int> dailyMinutes = {};
 
     for (final activity in monthActivities) {
@@ -86,7 +86,7 @@ class SummaryController extends GetxController {
       ..sort((a, b) => a.date.compareTo(b.date));
   }
 
-  List<ActivityModel> _getActivitiesForSelectedMonth() {
+  List<ActivityModel> getActivitiesForSelectedMonth() {
     final activity =
         activities.where((activity) {
           return activity.date.year == selectedYear.value &&
@@ -111,7 +111,6 @@ class SummaryController extends GetxController {
   void updateYear(int year) {
     selectedYear.value = year;
   }
-
 }
 
 class ActivityDistribution {

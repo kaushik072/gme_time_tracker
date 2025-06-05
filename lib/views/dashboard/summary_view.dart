@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:gme_time_tracker/models/user_model.dart';
 import 'package:gme_time_tracker/widgets/common_input_field.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:syncfusion_flutter_charts/charts.dart';
 import '../../helpers/pdf_helper.dart';
 import '../../models/activity_model.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/toast_helper.dart';
 import 'controller/dashboard_controller.dart';
 import 'controller/summary_controller.dart';
-import 'package:flutter/services.dart';
 
 class SummaryView extends StatelessWidget {
   final controller = Get.put(SummaryController());
@@ -112,7 +113,13 @@ class SummaryView extends StatelessWidget {
                     };
 
                     // Get activities
-                    List<ActivityModel> activities = controller.activities;
+                    List<ActivityModel> activities =
+                        controller.getActivitiesForSelectedMonth();
+
+                    if (activities.isEmpty) {
+                      ToastHelper.showErrorToast('No activities found');
+                      return;
+                    }
 
                     await PdfGenerator.generateUserActivityPDF(
                       fileName: 'GME_Hours_${month}_$year',
